@@ -37,6 +37,27 @@
     <Filter Include="AIBehavior">
       <UniqueIdentifier>{a43ca5ee-3f4e-4115-861f-d27310bd3dd1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Models">
+      <UniqueIdentifier>{fbecaa2a-fb80-433f-b623-1cc833df2e5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Models\Assimp">
+      <UniqueIdentifier>{0310ce37-4aaf-4e9f-80c7-8ff84ffde4d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObjects">
+      <UniqueIdentifier>{25ff9883-1416-45c8-965e-a27cc1f1e44d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{37f400c5-928c-48ba-9f2d-337169749361}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FrameBuffer">
+      <UniqueIdentifier>{a2aad87c-43b8-441c-8566-c1529011df27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Error">
+      <UniqueIdentifier>{df6ac69e-8ac7-4523-b36d-9c4296e0cc77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{1a37f148-8328-4856-a475-711b49356712}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TheMain.cpp">
@@ -48,22 +69,10 @@
     <ClCompile Include="cTriangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelUtilities.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cShaderManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cGameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cVAOMeshManager.cpp">
@@ -114,24 +123,72 @@
     <ClCompile Include="cSteeringManager.cpp">
       <Filter>AIBehavior</Filter>
     </ClCompile>
+    <ClCompile Include="assimp\cAssimpBasic.cpp">
+      <Filter>Models\Assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="assimp\cAssimpBasic_Imp.cpp">
+      <Filter>Models\Assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="assimp\cSimpleAssimpSkinnedMeshLoader_OneMesh.cpp">
+      <Filter>Models\Assimp</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelUtilities.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="cModelAssetLoader.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneLoader.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="cGameObject.cpp">
+      <Filter>GameObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="cAnimationState.cpp">
+      <Filter>GameObjects</Filter>
+    </ClCompile>
+    <ClCompile Include="cMesh.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="sMeshDrawInfo.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Render_Calls.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cFBO.cpp">
+      <Filter>FrameBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture\CTextureManager.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Error\CErrorLog.cpp">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="Error\COpenGLError.cpp">
+      <Filter>Error</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\cMathHelper.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\CStringHelper.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\CStringUtils.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="cDebugRenderer_BuiltInShapes.cpp">
+      <Filter>DebugRenderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cTriangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ModelUtilities.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cShaderManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cGameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cVAOMeshManager.h">
@@ -197,12 +254,75 @@
     <ClInclude Include="cSteeringManager.h">
       <Filter>AIBehavior</Filter>
     </ClInclude>
+    <ClInclude Include="assimp\cAssimpBasic.h">
+      <Filter>Models\Assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="assimp\cAssimpBasic_Imp.h">
+      <Filter>Models\Assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="assimp\cSimpleAssimpSkinnedMeshLoader_OneMesh.h">
+      <Filter>Models\Assimp</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelUtilities.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="cModelAssetLoader.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="cGameObject.h">
+      <Filter>GameObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="cAnimationState.h">
+      <Filter>GameObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="cMesh.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="sMeshDrawInfo.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="sTextureBindBlendInfo.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="cFBO.h">
+      <Filter>FrameBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture\CTextureManager.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture\CTexUnitInfoBrief.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="sVertex_xyz_rgba_n_uv2_bt_4Bones.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\CErrorLog.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="Error\COpenGLError.h">
+      <Filter>Error</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\cMathHelper.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CStringHelper.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CStringUtils.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\simpleVert.glsl">
       <Filter>Shaders</Filter>
     </None>
     <None Include="assets\shaders\simpleFrag.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="assets\shaders\simpleFragDeferred.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

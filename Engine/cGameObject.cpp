@@ -10,7 +10,7 @@ cGameObject::cGameObject()
 	this->scale = 1.0f;	// (not zero)
 	this->position = glm::vec3(0.0f);
 	this->prevPosition = glm::vec3( NULL );
-	this->overwrtiteQOrientationFormEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+	this->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 
 	this->vel = glm::vec3( 0.0f );
 	this->accel = glm::vec3( 0.0f );
@@ -31,11 +31,11 @@ cGameObject::cGameObject()
 	
 	this->myLight = NULL;
 	
-	// Set all texture blend values to 0.0f (meaning NO texture)
-	for( int index = 0; index != NUMTEXTURES; index++ )
-	{
-		this->textureBlend[index] = 0.0f;
-	}
+	//// Set all texture blend values to 0.0f (meaning NO texture)
+	//for( int index = 0; index != NUMTEXTURES; index++ )
+	//{
+	//	this->textureBlend[index] = 0.0f;
+	//}
 
 	// Assign unque ID, the increment for next created object
 	// (Note: if you write your own copy constructor, be sure to COPY this
@@ -63,7 +63,12 @@ cGameObject::~cGameObject()
 	return;
 }
 
-void cGameObject::overwrtiteQOrientationFormEuler( glm::vec3 eulerAxisOrientation )
+glm::vec3 cGameObject::getPosition( void )
+{
+	return this->position;
+}
+
+void cGameObject::overwrtiteQOrientationFromEuler( glm::vec3 eulerAxisOrientation )
 {
 	this->prevOrientation = this->qOrientation;
 	// Calcualte the quaternion represnetaiton of this Euler axis
@@ -161,3 +166,13 @@ bool cGameObject::isFacingMe( glm::vec3 targetDirection, glm::vec3 targetPositio
 	//std::cout << "Facing: " << isItFacing << " " << facingText << " scale: " << facing << std::endl;
 	return isItFacing;
 }
+
+//glm::quat cGameObject::getFinalMeshQOrientation( unsigned int meshID )
+//{	// Does NOT check for the index of the mesh!
+//	return this->m_PhysicalProps.qOrientation * this->vecMeshes[meshID].getQOrientation();
+//}
+//
+//glm::quat cGameObject::getFinalMeshQOrientation( glm::quat &meshQOrientation )
+//{	// Does NOT check for the index of the mesh!
+//	return this->m_PhysicalProps.qOrientation * meshQOrientation;
+//}

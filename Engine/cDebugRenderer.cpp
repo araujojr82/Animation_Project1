@@ -8,6 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp> // glm::translate, glm::rotate, glm::scale, glm::perspective
 #include <glm/gtc/type_ptr.hpp> // glm::value_ptr
 
+#include <sstream>		
+#include <fstream>
 
 /*static*/ 
 const std::string cDebugRenderer::DEFALUT_VERT_SHADER_SOURCE = "\
@@ -267,7 +269,7 @@ cDebugRenderer::~cDebugRenderer()
 }
 
 
-void cDebugRenderer::RenderDebugObjects(glm::mat4 matCameraView, glm::mat4 matProjection)
+void cDebugRenderer::RenderDebugObjects(glm::mat4 matCameraView, glm::mat4 matProjection )
 {
 	this->m_copyTrianglesIntoRenderBuffer();
 	this->m_copyLinesIntoRenderBuffer();
@@ -410,7 +412,8 @@ void cDebugRenderer::m_copyTrianglesIntoRenderBuffer(void)
 	std::string errDetails;
 	if (err != GL_NO_ERROR)
 	{
-		error = decodeGLErrorFromEnum(err, errDetails);
+		//error = decodeGLErrorFromEnum(err, errDetails);
+		error = COpenGLError::TranslateErrorEnum( err );
 	}
 
 	//	numberOfBytesToCopy,
@@ -691,7 +694,8 @@ void cDebugRenderer::m_copyLinesIntoRenderBuffer( void )
 	std::string errDetails;
 	if( err != GL_NO_ERROR )
 	{
-		error = decodeGLErrorFromEnum( err, errDetails );
+		//error = decodeGLErrorFromEnum( err, errDetails );
+		error = COpenGLError::TranslateErrorEnum( err );
 	}
 
 	//	numberOfBytesToCopy,

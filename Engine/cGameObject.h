@@ -8,6 +8,11 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+#include "sMeshDrawInfo.h"
+
+class cSimpleAssimpSkinnedMesh;	// Forward declare
+class cAnimationState;			// Forward declare 
+
 enum eTypeOfGO
 {
 	CHARACTER = 0,
@@ -63,6 +68,8 @@ public:
 	glm::vec3 position;
 	glm::vec3 prevPosition;
 
+	glm::vec3 getPosition( void );
+
 	// AI additions
 	eTypeOfGO type;
 	eTeam team;
@@ -74,7 +81,7 @@ public:
 	float wanderAngle;
 
 	// Now orientation 
-	void overwrtiteQOrientationFormEuler( glm::vec3 eulerAxisOrientation );
+	void overwrtiteQOrientationFromEuler( glm::vec3 eulerAxisOrientation );
 	// NOTE: Use THIS, not just setting the values
 	void adjustQOrientationFormDeltaEuler( glm::vec3 eulerAxisOrientChange );
 	glm::quat qOrientation;
@@ -82,6 +89,19 @@ public:
 
 	glm::vec3 getDirectionVector();
 	bool isFacingMe( glm::vec3 targetDirection, glm::vec3 targetPosition );
+
+
+	// Mesh information (if drawn)
+	// Note: Meshes have a separate orientation and offset from 
+	//	the object, in case you want the mesh(es) to be
+	//	loaded in different alignment from the game object. 
+	//  If the object alignment is the same as the mesh
+	//	alignment, then don't set the orientation and offset
+	//	in the mesh information.
+	std::vector<sMeshDrawInfo> vecMeshes;
+	//glm::quat getFinalMeshQOrientation( unsigned int meshID );
+	//glm::quat getFinalMeshQOrientation( glm::quat &meshQOrientation );
+
 
 	float scale;
 
@@ -108,13 +128,17 @@ public:
 
 	std::string meshName;		// mesh I'd  like to draw
 
-	// The texture of this object
-	static const unsigned int NUMTEXTURES = 10;
-	std::string textureNames[NUMTEXTURES];
-	float textureBlend[NUMTEXTURES];			// 0 - 1
+	//// The texture of this object
+	//static const unsigned int NUMTEXTURES = 10;
+	//std::string textureNames[NUMTEXTURES];
+	//float textureBlend[NUMTEXTURES];			// 0 - 1
 
 	std::string friendlyName;
 	inline unsigned int getUniqueID( void ) { return this->m_UniqueID; }
+
+	// If NULL, then object ISN'T a skinned mesh
+	cSimpleAssimpSkinnedMesh*	pSimpleSkinnedMesh;
+	cAnimationState*			pAniState;
 
 private:
 	unsigned int m_UniqueID;

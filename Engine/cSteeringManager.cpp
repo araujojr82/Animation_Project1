@@ -121,7 +121,7 @@ void cSteeringManager::update( cGameObject* pTheGO, double deltaTime )
 		float rotation = calculateAngle( velocity );
 		rotation = glm::radians( rotation );
 		glm::vec3 rotateAngle = glm::vec3( 0.0f, rotation, 0.0f );
-		pTheGO->overwrtiteQOrientationFormEuler( rotateAngle );
+		pTheGO->overwrtiteQOrientationFromEuler( rotateAngle );
 	}
 
 	return;

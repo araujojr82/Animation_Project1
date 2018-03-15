@@ -39,6 +39,9 @@
 
 //#include "cSteeringManager.h"
 
+#include "cFBO.h" 
+cFBO g_myFBO;
+
 // The Game Boundaries:
 const float maxX = 15.0f;
 const float minX = -15.0f;
@@ -79,25 +82,33 @@ cVAOMeshManager*	g_pVAOManager = 0;		// or NULL or nullptr
 cShaderManager*		g_pShaderManager;		// Heap, new (and delete)
 cLightManager*		g_pLightManager;
 
-cBasicTextureManager*	g_pTextureManager = 0;
+//cBasicTextureManager*	g_pTextureManager = 0;
+CTextureManager*	g_pTextureManager = 0;
+
+cModelAssetLoader*		g_pModelAssetLoader = NULL;
 
 cDebugRenderer*			g_pDebugRenderer = 0;
+
+bool g_IsWindowFullScreen = false;
+GLFWwindow* g_pGLFWWindow = NULL;
+
+bool g_bUseDeferred = true; // Switch between 1 pass or 2 passes...
 
 // This contains the AABB grid for the terrain...
 //cAABBBroadPhase* g_terrainAABBBroadPhase = 0;
 
 // Other uniforms:
-GLint uniLoc_materialDiffuse = -1;
-GLint uniLoc_materialAmbient = -1;
-GLint uniLoc_ambientToDiffuseRatio = -1; 	// Maybe	// 0.2 or 0.3
-GLint uniLoc_materialSpecular = -1;  // rgb = colour of HIGHLIGHT only
-									 // w = shininess of the 
-GLint uniLoc_bIsDebugWireFrameObject = -1;
-
-GLint uniLoc_eyePosition = -1;	// Camera position
-GLint uniLoc_mModel = -1;
-GLint uniLoc_mView = -1;
-GLint uniLoc_mProjection = -1;
+//GLint uniLoc_materialDiffuse = -1;
+//GLint uniLoc_materialAmbient = -1;
+//GLint uniLoc_ambientToDiffuseRatio = -1; 	// Maybe	// 0.2 or 0.3
+//GLint uniLoc_materialSpecular = -1;  // rgb = colour of HIGHLIGHT only
+//									 // w = shininess of the 
+//GLint uniLoc_bIsDebugWireFrameObject = -1;
+//
+//GLint uniLoc_eyePosition = -1;	// Camera position
+//GLint uniLoc_mModel = -1;
+//GLint uniLoc_mView = -1;
+//GLint uniLoc_mProjection = -1;
 
 struct sWindowConfig
 {
@@ -218,84 +229,84 @@ void move_player( double deltaTime )
 	return;
 }
 
-void drawCapsule( glm::vec3 position )
-{
-	cGameObject* capsuleGO = new cGameObject();
-	capsuleGO->meshName = "capsule";
-	capsuleGO->bIsWireFrame = true;
-	capsuleGO->position = position;
-	DrawObject( capsuleGO );
-	delete capsuleGO;
-}
+//void drawCapsule( glm::vec3 position )
+//{
+//	cGameObject* capsuleGO = new cGameObject();
+//	capsuleGO->meshName = "capsule";
+//	capsuleGO->bIsWireFrame = true;
+//	capsuleGO->position = position;
+//	DrawObject( capsuleGO );
+//	delete capsuleGO;
+//}
 
 void drawTagCircle( cGameObject* pTheGO )
 {
-	cGameObject* tagCircleGO = new cGameObject();
-	tagCircleGO->meshName = "circle";
-	tagCircleGO->textureBlend[0] = 1.0f;
-	tagCircleGO->position = pTheGO->position;
+	//cGameObject* tagCircleGO = new cGameObject();
+	//tagCircleGO->meshName = "circle";
+	//tagCircleGO->textureBlend[0] = 1.0f;
+	//tagCircleGO->position = pTheGO->position;
 
-	switch( pTheGO->enemyType )
-	{
-		case ANGRY:
-		{
-			if( pTheGO->behaviour == eEnemyBehaviour::SEEK )
-			{
-				tagCircleGO->textureNames[0] = "red.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 0.0f, 0.0f ) );
-			}
-			else if( pTheGO->behaviour == eEnemyBehaviour::FLEE )
-			{
-				tagCircleGO->textureNames[0] = "orange.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 0.5f, 0.15f ) );
-			}
-			else
-			{
-				tagCircleGO->textureNames[0] = "white.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 1.0f, 1.0f ) );
-			}
-		}
-		break;
+	//switch( pTheGO->enemyType )
+	//{
+	//	case ANGRY:
+	//	{
+	//		if( pTheGO->behaviour == eEnemyBehaviour::SEEK )
+	//		{
+	//			tagCircleGO->textureNames[0] = "red.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 0.0f, 0.0f ) );
+	//		}
+	//		else if( pTheGO->behaviour == eEnemyBehaviour::FLEE )
+	//		{
+	//			tagCircleGO->textureNames[0] = "orange.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 0.5f, 0.15f ) );
+	//		}
+	//		else
+	//		{
+	//			tagCircleGO->textureNames[0] = "white.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 1.0f, 1.0f ) );
+	//		}
+	//	}
+	//	break;
 
-		case CURIOUS:
-		{
-			if( pTheGO->behaviour == eEnemyBehaviour::APPROACH )
-			{
-				tagCircleGO->textureNames[0] = "blue.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.0f, 0.0f, 1.0f ) );
-			}
-			else if( pTheGO->behaviour == eEnemyBehaviour::EVADE )
-			{
-				tagCircleGO->textureNames[0] = "purple.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.5f, 0.25f, 0.5f ) );
-			}
-			else
-			{
-				tagCircleGO->textureNames[0] = "gray.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.5f, 0.5f, 0.5f ) );
-			}
-		}
-		break;
+	//	case CURIOUS:
+	//	{
+	//		if( pTheGO->behaviour == eEnemyBehaviour::APPROACH )
+	//		{
+	//			tagCircleGO->textureNames[0] = "blue.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.0f, 0.0f, 1.0f ) );
+	//		}
+	//		else if( pTheGO->behaviour == eEnemyBehaviour::EVADE )
+	//		{
+	//			tagCircleGO->textureNames[0] = "purple.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.5f, 0.25f, 0.5f ) );
+	//		}
+	//		else
+	//		{
+	//			tagCircleGO->textureNames[0] = "gray.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+	//		}
+	//	}
+	//	break;
 
-		case FOLLOWER:
-			if( pTheGO->behaviour == eEnemyBehaviour::SEEK )
-			{
-				tagCircleGO->textureNames[0] = "green.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-			}
-			else
-			{
-				tagCircleGO->textureNames[0] = "yellow.bmp";
-				::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 1.0f, 0.0f ) );
-			}
-			break;
+	//	case FOLLOWER:
+	//		if( pTheGO->behaviour == eEnemyBehaviour::SEEK )
+	//		{
+	//			tagCircleGO->textureNames[0] = "green.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 0.0f, 1.0f, 0.0f ) );
+	//		}
+	//		else
+	//		{
+	//			tagCircleGO->textureNames[0] = "yellow.bmp";
+	//			::g_pDebugRenderer->addCircle( pTheGO->position, pTheGO->range, glm::vec3( 1.0f, 1.0f, 0.0f ) );
+	//		}
+	//		break;
 
-		case UNAVAIABLE:
-			break;
-	}
+	//	case UNAVAIABLE:
+	//		break;
+	//}
 
-	DrawObject( tagCircleGO );
-	delete tagCircleGO;
+	//DrawObject( tagCircleGO );
+	//delete tagCircleGO;
 }
 
 void drawRange()
@@ -362,44 +373,56 @@ void collisionCheck()
 
 int main( void )
 {
-	GLFWwindow* window;
-	GLint mvp_location; //vpos_location, vcol_location;
 	glfwSetErrorCallback( error_callback );
 
 	if( !glfwInit() )
-		exit( EXIT_FAILURE );
+	{
+		std::cout << "ERROR: Couldn't init GLFW, so we're pretty much stuck; do you have OpenGL??" << std::endl;
+		return -1;
+	}
+
+	int height = 480;	/* default */
+	int width = 640;	// default
+	std::string title = "OpenGL Rocks";
 
 	sWindowConfig wConfig;
 
 	loadConfigFile( "config.txt", wConfig );
-	loadObjectsFile( "objects.txt" );
+	//loadObjectsFile( "objects.txt" );
 
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 2 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
 
-	window = glfwCreateWindow( wConfig.width, wConfig.height,
+	::g_pGLFWWindow = glfwCreateWindow( wConfig.width, wConfig.height,
 		wConfig.title.c_str(),
 		NULL, // glfwGetPrimaryMonitor(), //
 		NULL );
-	if( !window )
+
+	if( !::g_pGLFWWindow )
 	{
 		glfwTerminate();
 		exit( EXIT_FAILURE );
 	}
 
-	glfwSetKeyCallback( window, key_callback );
-	
-	glfwMakeContextCurrent( window );
+	glfwSetKeyCallback( ::g_pGLFWWindow, key_callback );
+	// For the FBO to resize when the window changes
+	glfwSetWindowSizeCallback( ::g_pGLFWWindow, window_size_callback );
+
+	glfwMakeContextCurrent( ::g_pGLFWWindow );
 	gladLoadGLLoader( ( GLADloadproc )glfwGetProcAddress );
 	glfwSwapInterval( 1 );
-	glfwSetCursorPosCallback( window, mouse_callback );
-	glfwSetInputMode( window, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
-	glfwSetScrollCallback( window, scroll_callback );
+
+	glfwSetCursorPosCallback( ::g_pGLFWWindow, mouse_callback );
+	glfwSetInputMode( ::g_pGLFWWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+	glfwSetScrollCallback( ::g_pGLFWWindow, scroll_callback );
 
 	std::cout << glGetString( GL_VENDOR ) << " "
 		<< glGetString( GL_RENDERER ) << ", "
 		<< glGetString( GL_VERSION ) << std::endl;
 	std::cout << "Shader language version: " << glGetString( GL_SHADING_LANGUAGE_VERSION ) << std::endl;
+
+	// General error string, used for a number of items during start up
+	std::string error;
 
 	::g_pShaderManager = new cShaderManager();
 
@@ -407,11 +430,9 @@ int main( void )
 	cShaderManager::cShader fragShader;
 
 	vertShader.fileName = "simpleVert.glsl";
-	fragShader.fileName = "simpleFrag.glsl";
-
-	// General error string, used for a number of items during start up
-	std::string error;
-
+	//fragShader.fileName = "simpleFrag.glsl";
+	fragShader.fileName = "simpleFragDeferred.glsl";
+	
 	::g_pShaderManager->setBasePath( "assets//shaders//" );
 
 	// Shader objects are passed by reference so that
@@ -421,9 +442,8 @@ int main( void )
 	{
 		std::cout << "Oh no! All is lost!!! Blame Loki!!!" << std::endl;
 		std::cout << ::g_pShaderManager->getLastError() << std::endl;
-		// Should we exit?? 
+		
 		return -1;
-		//		exit(
 	}
 	std::cout << "The shaders compiled and linked OK" << std::endl;
 
@@ -434,28 +454,65 @@ int main( void )
 	}
 
 	//Load models
+	::g_pModelAssetLoader = new cModelAssetLoader();
+	::g_pModelAssetLoader->setBasePath( "assets/models/" );
+
 	::g_pVAOManager = new cVAOMeshManager();
 
+	GLint currentProgID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
 	GLint sexyShaderID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
 
-	loadMeshesFile( "meshlist.txt", sexyShaderID );
+	if( !Load3DModelsIntoMeshManager( sexyShaderID, ::g_pVAOManager, ::g_pModelAssetLoader, error ) )
+	{
+		std::cout << "Not all models were loaded..." << std::endl;
+		std::cout << error << std::endl;
+	}
+
+	LoadModelsIntoScene();
+
+
+
+	// Named unifrom block
+	// Now many uniform blocks are there? 
+	GLint numberOfUniformBlocks = -1;
+	glGetProgramiv( currentProgID, GL_ACTIVE_UNIFORM_BLOCKS, &numberOfUniformBlocks );
+
+	// https://www.opengl.org/wiki/GLAPI/glGetActiveUniformBlock
+
+	// Set aside some buffers for the names of the blocks
+	const int BUFFERSIZE = 1000;
+
+	int name_length_written = 0;
+
+	char NUBName_0[BUFFERSIZE] = { 0 };
+	char NUBName_1[BUFFERSIZE] = { 0 };
+
+	glGetActiveUniformBlockName( currentProgID,
+								 0,
+								 BUFFERSIZE,
+								 &name_length_written,
+								 NUBName_0 );
+
+	glGetActiveUniformBlockName( currentProgID,
+								 1,
+								 BUFFERSIZE,
+								 &name_length_written,
+								 NUBName_1 );
+
+	//	NUB_lighting
+	//	NUB_perFrame
+
+	GLuint NUB_Buffer_0_ID = 0;
+	GLuint NUB_Buffer_1_ID = 0;
+
+	glGenBuffers( 1, &NUB_Buffer_0_ID );
+	glBindBuffer( GL_UNIFORM_BUFFER, NUB_Buffer_0_ID );
+
+	glGenBuffers( 1, &NUB_Buffer_1_ID );
+	glBindBuffer( GL_UNIFORM_BUFFER, NUB_Buffer_1_ID );
+
+
 	
-	// Create a map and a mesh based on it
-	newPlayerGO();
-
-	GLint currentProgID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
-
-	// Get the uniform locations for this shader
-	mvp_location = glGetUniformLocation( currentProgID, "MVP" );		// program, "MVP");
-	uniLoc_materialDiffuse = glGetUniformLocation( currentProgID, "materialDiffuse" );
-	uniLoc_materialAmbient = glGetUniformLocation( currentProgID, "materialAmbient" );
-	uniLoc_ambientToDiffuseRatio = glGetUniformLocation( currentProgID, "ambientToDiffuseRatio" );
-	uniLoc_materialSpecular = glGetUniformLocation( currentProgID, "materialSpecular" );
-	uniLoc_eyePosition = glGetUniformLocation( currentProgID, "eyePosition" );
-
-	uniLoc_mModel = glGetUniformLocation( currentProgID, "mModel" );
-	uniLoc_mView = glGetUniformLocation( currentProgID, "mView" );
-	uniLoc_mProjection = glGetUniformLocation( currentProgID, "mProjection" );
 
 	::g_pLightManager = new cLightManager();
 
@@ -484,8 +541,9 @@ int main( void )
 	//loadLightObjects();
 
 	// Texture 
-	::g_pTextureManager = new cBasicTextureManager();
-	::g_pTextureManager->SetBasePath( "assets/textures" );
+	::g_pTextureManager = new CTextureManager();
+
+	::g_pTextureManager->setBasePath( "assets/textures" );
 	if( !::g_pTextureManager->Create2DTextureFromBMPFile( "rick_texture.bmp", true ) )
 	{
 		std::cout << "Didn't load the texture. Oh no!" << std::endl;
@@ -559,165 +617,43 @@ int main( void )
 
 	glEnable( GL_DEPTH );
 
+	// Create an FBO
+	//	if ( ! g_myFBO.init(width, height, error) )
+	if( !g_myFBO.init( 1920, 1080, error ) )
+	{
+		std::cout << "FBO error: " << error << std::endl;
+	}
+	else
+	{
+		std::cout << "FBO is good." << std::endl;
+		std::cout << "\tFBO ID = " << g_myFBO.ID << std::endl;
+		std::cout << "\tcolour texture ID = " << g_myFBO.colourTexture_0_ID << std::endl;
+		std::cout << "\tnormal texture ID = " << g_myFBO.normalTexture_1_ID << std::endl;
+
+		std::cout << "GL_MAX_COLOR_ATTACHMENTS = " << g_myFBO.getMaxColourAttachments() << std::endl;
+		std::cout << "GL_MAX_DRAW_BUFFERS = " << g_myFBO.getMaxDrawBuffers() << std::endl;
+
+	}
+
+	setWindowFullScreenOrWindowed( ::g_pGLFWWindow, ::g_IsWindowFullScreen );
+
+
 	// Gets the "current" time "tick" or "step"
 	double lastTimeStep = glfwGetTime();
 
 	drawRange();
 
 	// Main game or application loop
-	while( !glfwWindowShouldClose( window ) )
+	while( !glfwWindowShouldClose( ::g_pGLFWWindow ) )
 	{
-		float ratio;
-		int width, height;
-		glm::mat4x4 matProjection;			// was "p"
-
-		glfwGetFramebufferSize( window, &width, &height );
-		ratio = width / ( float )height;
-		glViewport( 0, 0, width, height );
-
-		// Clear colour AND depth buffer
-		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-		::g_pShaderManager->useShaderProgram( "mySexyShader" );
-		GLint shaderID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
-
-		// Update all the light uniforms...
-		// (for the whole scene)
-		::g_pLightManager->CopyLightInformationToCurrentShader();
-
-		// Changing the projection to include zoom 
-		// Projection and view don't change per scene (maybe)
-		matProjection = glm::perspective( glm::radians( ::g_pTheMouseCamera->Zoom ), // 0.6f,
-			ratio,		// Aspect ratio
-			1.0f,			// Near (as big as possible)
-			100000.0f );	// Far (as small as possible)
-
-		//matProjection = ::g_p3Pcamera->getProjectionMatrix();
-
-		// View or "camera" matrix
-		glm::mat4 matView = glm::mat4( 1.0f );	// was "v"
-
-		// Now the view matrix is taken right from the camera class
-		//matView = ::g_pTheCamera->getViewMatrix();
-		matView = ::g_pTheMouseCamera->GetViewMatrix();
-		//matView = ::g_p3Pcamera->getViewMatrix();
-
-
-		glUniformMatrix4fv( uniLoc_mView, 1, GL_FALSE,
-			( const GLfloat* )glm::value_ptr( matView ) );
-		glUniformMatrix4fv( uniLoc_mProjection, 1, GL_FALSE,
-			( const GLfloat* )glm::value_ptr( matProjection ) );
-
-		// Set ALL texture units and binding for ENTIRE SCENE (is faster)
-		{
-		//	// 0 
-		//	glActiveTexture( GL_TEXTURE0 );
-		//	glBindTexture( GL_TEXTURE_2D,
-		//		::g_pTextureManager->getTextureIDFromName( "vegetation_hedge_22.bmp" ) );
-		//	//::g_pTextureManager->getTextureIDFromName(pTheGO->textureNames[0]));
-		//// 1
-		//	glActiveTexture( GL_TEXTURE1 );
-		//	glBindTexture( GL_TEXTURE_2D,
-		//		::g_pTextureManager->getTextureIDFromName( "Rough_rock_015_COLOR.bmp" ) );
-		//	// 2..  and so on... 
-		//	glActiveTexture( GL_TEXTURE2 );
-		//	glBindTexture( GL_TEXTURE_2D,
-		//		::g_pTextureManager->getTextureIDFromName( "Red_Marble_001_COLOR.bmp" ) );
-
-		//	glActiveTexture( GL_TEXTURE2 );
-		//	glBindTexture( GL_TEXTURE_2D,
-		//		::g_pTextureManager->getTextureIDFromName( "checkered.bmp" ) );
-
-			// Set sampler in the shader
-			// NOTE: You shouldn't be doing this during the draw call...
-			GLint curShaderID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
-			GLint textSampler00_ID = glGetUniformLocation( curShaderID, "myAmazingTexture00" );
-			GLint textSampler01_ID = glGetUniformLocation( curShaderID, "myAmazingTexture01" );
-			// And so on (up to 10, or whatever number of textures)... 
-
-			GLint textBlend00_ID = glGetUniformLocation( curShaderID, "textureBlend00" );
-			GLint textBlend01_ID = glGetUniformLocation( curShaderID, "textureBlend01" );
-
-			// This connects the texture sampler to the texture units... 
-			glUniform1i( textSampler00_ID, 0 );		// Enterprise
-			glUniform1i( textSampler01_ID, 1 );		// GuysOnSharkUnicorn
-		}
-
-
-		// Enable blend ("alpha") transparency for the scene
-		// NOTE: You "should" turn this OFF, then draw all NON-Transparent objects
-		//       Then turn ON, sort objects from far to near ACCORDING TO THE CAMERA
-		//       and draw them
-		glEnable( GL_BLEND );		// Enables "blending"
-									//glDisable( GL_BLEND );
-									// Source == already on framebuffer
-									// Dest == what you're about to draw
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-
-
-		// Draw the scene
-		unsigned int sizeOfVector = ( unsigned int )::g_vecGameObjects.size();	//*****//
-		for( int index = 0; index != sizeOfVector; index++ )
-		{
-			cGameObject* pTheGO = ::g_vecGameObjects[index];
-
-			checkBoundaries( pTheGO );
-
-			DrawObject( pTheGO );
-
-			if( pTheGO->type == eTypeOfGO::CHARACTER )
-			{
-				if( pTheGO->team == eTeam::ENEMY )
-				{
-					drawTagCircle( pTheGO );
-				}
-				else
-				{
-					::g_pDebugRenderer->addCircle( pTheGO->position, 0.25f, glm::vec3( 1.0f, 1.0f, 1.0f ) );
-				}
-				//drawCapsule( pTheGO->position );
-			}
-			//if( pTheGO->meshName == "rick" )
-			//{
-			//	addCircleToDebugRenderer( pTheGO->position, pTheGO->range, glm::vec3( 0.0f, 1.0f, 0.0f ) );
-			//}
-
-		}//for ( int index = 0...
-
-		::g_pDebugRenderer->RenderDebugObjects( matView, matProjection );
-
-		std::stringstream ssTitle;
-		ssTitle << "AI: Project 2"
-			<< "Player Health: " << ::g_pThePlayerGO->health;
-			//<< "Circle Distance: "						
-			//<< ::g_pSteeringManager->CIRCLE_DISTANCE
-			//<< " Circle Radius: "
-			//<< ::g_pSteeringManager->CIRCLE_RADIUS
-			//<< " Angle Change: "
-			//<< ::g_pSteeringManager->ANGLE_CHANGE;
-			//<< "Camera Position (xyz): "
-			//<< ::g_pTheMouseCamera->Position.x << ", "
-			//<< ::g_pTheMouseCamera->Position.y << ", "
-			//<< ::g_pTheMouseCamera->Position.z
-			//<< " - Yaw: "
-			//<< ::g_pTheMouseCamera->Yaw
-			//<< " - Pitch: "
-			//<< ::g_pTheMouseCamera->Pitch;
-
-		glfwSetWindowTitle( window, ssTitle.str().c_str() );
-
-		glfwSwapBuffers( window );
-		glfwPollEvents();
-
 		// Essentially the "frame time"
 		// Now many seconds that have elapsed since we last checked
 		double curTime = glfwGetTime();
 		double deltaTime = curTime - lastTimeStep;
-		
+		lastTimeStep = curTime;
+
 		move_player( deltaTime );
 
-		//updateAllObjects( deltaTime );
 		::g_pSteeringManager->updateAll( deltaTime );
 
 		// Check for collisions with the player and update it's health
@@ -734,12 +670,101 @@ int main( void )
 		::g_pThePlayerGO->prevOrientation = ::g_pThePlayerGO->qOrientation;
 		::g_pThePlayerGO->prevPosition = ::g_pThePlayerGO->position;
 
-		lastTimeStep = curTime;
+		//float ratio;
+		//int width, height;
+		//glm::mat4x4 matProjection;			// was "p"
+
+		//glfwGetFramebufferSize( window, &width, &height );
+		//ratio = width / ( float )height;
+		//glViewport( 0, 0, width, height );
+
+		//// Clear colour AND depth buffer
+		//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+		::g_pShaderManager->useShaderProgram( "mySexyShader" );
+		
+		// Check to see if we are using Deferred Renderer
+		if( !g_bUseDeferred )
+		{
+			// Direct everything to the FBO
+			GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
+			glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+			// Clear colour AND depth buffer
+			g_myFBO.clearBuffers();
+
+			RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
+		}
+		else
+		{	// Direct everything to the FBO
+		
+			GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
+			glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			glBindFramebuffer( GL_FRAMEBUFFER, g_myFBO.ID );
+			
+			// Clear colour AND depth buffer
+			g_myFBO.clearBuffers();
+
+			RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
+
+			// Render it again, but point the the FBO texture... 
+			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+			::g_pShaderManager->useShaderProgram( "mySexyShader" );
+
+			glUniform1i( bIsSecondPassLocID, GL_TRUE );
+
+			GLint texFBOColour2DTextureUnitID = 10;
+			GLint texFBOColour2DLocID = glGetUniformLocation( sexyShaderID, "texFBOColour2D" );
+			GLint texFBONormal2DTextureUnitID = 11;
+			GLint texFBONormal2DLocID = glGetUniformLocation( sexyShaderID, "texFBONormal2D" );
+			GLint texFBOWorldPosition2DTextureUnitID = 12;
+			GLint texFBOWorldPosition2DLocID = glGetUniformLocation( sexyShaderID, "texFBOVertexWorldPos2D" );
+
+			// Pick a texture unit... 
+			glActiveTexture( GL_TEXTURE0 + texFBOColour2DTextureUnitID );
+			glBindTexture( GL_TEXTURE_2D, g_myFBO.colourTexture_0_ID );
+			glUniform1i( texFBOColour2DLocID, texFBOColour2DTextureUnitID );
+
+			glActiveTexture( GL_TEXTURE0 + texFBONormal2DTextureUnitID );
+			glBindTexture( GL_TEXTURE_2D, g_myFBO.normalTexture_1_ID );
+			glUniform1i( texFBONormal2DLocID, texFBONormal2DTextureUnitID );
+
+			glActiveTexture( GL_TEXTURE0 + texFBOWorldPosition2DTextureUnitID );
+			glBindTexture( GL_TEXTURE_2D, g_myFBO.vertexWorldPos_2_ID );
+			glUniform1i( texFBOWorldPosition2DLocID, texFBOWorldPosition2DTextureUnitID );
+
+			// Set the sampler in the shader to the same texture unit (20)
+
+			glfwGetFramebufferSize( ::g_pGLFWWindow, &width, &height );
+
+			GLint screenWidthLocID = glGetUniformLocation( sexyShaderID, "screenWidth" );
+			GLint screenHeightLocID = glGetUniformLocation( sexyShaderID, "screenHeight" );
+			glUniform1f( screenWidthLocID, ( float )width );
+			glUniform1f( screenHeightLocID, ( float )height );
+
+			std::vector< cGameObject* >  vecCopy2ndPass;
+			// Push back a SINGLE quad or GIANT triangle that fills the entire screen
+			vecCopy2ndPass.push_back( ::g_vecGameObjects[0] );
+			RenderScene( vecCopy2ndPass, ::g_pGLFWWindow, deltaTime );
+		}
+
+		std::stringstream ssTitle;
+		ssTitle << "Animation: Project 1"
+			<< "Player Health: " << ::g_pThePlayerGO->health;
+
+		glfwSetWindowTitle( ::g_pGLFWWindow, ssTitle.str().c_str() );
+
+		glfwSwapBuffers( ::g_pGLFWWindow );
+		glfwPollEvents();	
+		
 
 	}// while ( ! glfwWindowShouldClose(window) )
 
 
-	glfwDestroyWindow( window );
+	glfwDestroyWindow( ::g_pGLFWWindow );
 	glfwTerminate();
 
 	// 
@@ -847,7 +872,7 @@ void newPlayerGO()
 	pTempGO3->position = glm::vec3( 0.0f, 0.0f, 0.0f );
 	pTempGO3->prevPosition = pTempGO3->position;
 	pTempGO3->scale = 1.0f;
-	pTempGO3->overwrtiteQOrientationFormEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+	pTempGO3->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 	pTempGO3->vel = glm::vec3( 0.0f );
 	pTempGO3->friendlyName = "player";
 	pTempGO3->typeOfObject = SPHERE;
@@ -857,8 +882,8 @@ void newPlayerGO()
 
 	pTempGO3->radius = theBallMesh.maxExtent / 2;
 
-	pTempGO3->textureBlend[0] = 1.0f;
-	pTempGO3->textureNames[0] = "rick_texture.bmp";
+	//pTempGO3->textureBlend[0] = 1.0f;
+	//pTempGO3->textureNames[0] = "rick_texture.bmp";
 
 	pTempGO3->type = eTypeOfGO::CHARACTER;
 	pTempGO3->team = eTeam::PLAYER;
@@ -908,7 +933,7 @@ void loadObjectsFile( std::string fileName )
 			//pTempGO->diffuseColour = glm::vec4( 0.5f, 0.5f, 0.5f, 1.0f );
 			pTempGO->diffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
 			//pTempGO->rotation = glm::vec3( 0.0f );
-			pTempGO->overwrtiteQOrientationFormEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+			pTempGO->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 
 
 			// SOME OBJECTS ARE RANDOMLY PLACED WHEN RANDOM=TRUE ON FILE
@@ -931,8 +956,8 @@ void loadObjectsFile( std::string fileName )
 
 			if( pTempGO->meshName == "rick" )
 			{
-				pTempGO->textureNames[0] = "rick_texture.bmp";
-				pTempGO->textureBlend[0] = 1.0f;
+				//pTempGO->textureNames[0] = "rick_texture.bmp";
+				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::PLAYER;
 				pTempGO->enemyType = eEnemyType::UNAVAIABLE;
@@ -940,8 +965,8 @@ void loadObjectsFile( std::string fileName )
 
 			else if( pTempGO->meshName == "scary" )
 			{
-				pTempGO->textureNames[0] = "scary.bmp";
-				pTempGO->textureBlend[0] = 1.0f;
+				//pTempGO->textureNames[0] = "scary.bmp";
+				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::ENEMY;
 				pTempGO->enemyType = eEnemyType::ANGRY;
@@ -952,8 +977,8 @@ void loadObjectsFile( std::string fileName )
 
 			else if( pTempGO->meshName == "morty" )
 			{
-				pTempGO->textureNames[0] = "morty.bmp";
-				pTempGO->textureBlend[0] = 1.0f;
+				//pTempGO->textureNames[0] = "morty.bmp";
+				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::ENEMY;
 				pTempGO->enemyType = eEnemyType::FOLLOWER;
@@ -964,8 +989,8 @@ void loadObjectsFile( std::string fileName )
 				
 			else if( pTempGO->meshName == "meeseeks" )
 			{
-				pTempGO->textureNames[0] = "meeseeks.bmp";
-				pTempGO->textureBlend[0] = 1.0f;
+				//pTempGO->textureNames[0] = "meeseeks.bmp";
+				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::ENEMY;
 				pTempGO->enemyType = eEnemyType::CURIOUS;
@@ -976,8 +1001,8 @@ void loadObjectsFile( std::string fileName )
 				
 			else if( pTempGO->meshName == "circle" )
 			{
-				pTempGO->textureNames[0] = "white.bmp";
-				pTempGO->textureBlend[0] = 1.0f;
+				//pTempGO->textureNames[0] = "white.bmp";
+				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::OTHER;
 				pTempGO->team = eTeam::NONE;
 				pTempGO->enemyType = eEnemyType::UNAVAIABLE;
@@ -985,8 +1010,8 @@ void loadObjectsFile( std::string fileName )
 				
 			else if( pTempGO->meshName == "terrain" )
 			{
-				pTempGO->textureNames[0] = "moon.bmp";
-				pTempGO->textureBlend[0] = 1.0f;
+				//pTempGO->textureNames[0] = "moon.bmp";
+				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::TERRAIN;
 				pTempGO->team = eTeam::NONE;
 				pTempGO->enemyType = eEnemyType::UNAVAIABLE;
@@ -1019,47 +1044,47 @@ sGOparameters parseObjLine( std::ifstream &source ) {
 //Load meshlist.txt
 void loadMeshesFile( std::string fileName, GLint ShaderID )
 {
-	std::vector <sMeshparameters> allMeshes;
+	//std::vector <sMeshparameters> allMeshes;
 
-	std::ifstream objectsFile( fileName );
-	if( !objectsFile.is_open() )
-	{	// File didn't open...
-		std::cout << "Can't find config file" << std::endl;
-		std::cout << "Using defaults" << std::endl;
-	}
-	else
-	{	// File DID open, so loop through the file and pushback to structure
-		while( !objectsFile.eof() && objectsFile.is_open() ) {
-			allMeshes.push_back( parseMeshLine( objectsFile ) );
-		}
-		objectsFile.close();  //Closing "costfile.txt"
-	}
+	//std::ifstream objectsFile( fileName );
+	//if( !objectsFile.is_open() )
+	//{	// File didn't open...
+	//	std::cout << "Can't find config file" << std::endl;
+	//	std::cout << "Using defaults" << std::endl;
+	//}
+	//else
+	//{	// File DID open, so loop through the file and pushback to structure
+	//	while( !objectsFile.eof() && objectsFile.is_open() ) {
+	//		allMeshes.push_back( parseMeshLine( objectsFile ) );
+	//	}
+	//	objectsFile.close();  //Closing "costfile.txt"
+	//}
 
-	for( int index = 0; index != allMeshes.size(); index++ )
-	{
-		cMesh testMesh;
-		testMesh.name = allMeshes[index].meshname;
-		//if( !LoadPlyFileIntoMesh( allMeshes[index].meshFilename, testMesh ) )
-		if( !LoadPlyFileIntoMeshWithUV( allMeshes[index].meshFilename, testMesh ) )
-		{
-			std::cout << "Didn't load model" << std::endl;
-			// do something??
-		}
-		if( testMesh.name == "ball" )
-		{
-			if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID, true ) )
-			{
-				std::cout << "Could not load mesh into VAO" << std::endl;
-			}
-		}
-		else
-		{
-			if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID ) )
-			{
-				std::cout << "Could not load mesh into VAO" << std::endl;
-			}
-		}		
-	}
+	//for( int index = 0; index != allMeshes.size(); index++ )
+	//{
+	//	cMesh testMesh;
+	//	testMesh.name = allMeshes[index].meshname;
+	//	//if( !LoadPlyFileIntoMesh( allMeshes[index].meshFilename, testMesh ) )
+	//	if( !LoadPlyFileIntoMeshWithUV( allMeshes[index].meshFilename, testMesh ) )
+	//	{
+	//		std::cout << "Didn't load model" << std::endl;
+	//		// do something??
+	//	}
+	//	if( testMesh.name == "ball" )
+	//	{
+	//		if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID, true ) )
+	//		{
+	//			std::cout << "Could not load mesh into VAO" << std::endl;
+	//		}
+	//	}
+	//	else
+	//	{
+	//		if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID ) )
+	//		{
+	//			std::cout << "Could not load mesh into VAO" << std::endl;
+	//		}
+	//	}		
+	//}
 }
 
 // Parse the file line to fit into the structure
@@ -1110,185 +1135,6 @@ void updateAllObjects( double deltaTime )
 			break;
 		}
 	}
-
-	return;
-}
-
-// Draw a single object
-void DrawObject( cGameObject* pTheGO )
-{
-	// Is there a game object? 
-	if( pTheGO == 0 )	//if ( ::g_GameObjects[index] == 0 )
-	{	// Nothing to draw
-		return;		// Skip all for loop code and go to next
-	}
-
-	// Was near the draw call, but we need the mesh name
-	std::string meshToDraw = pTheGO->meshName;		//::g_GameObjects[index]->meshName;
-
-	sVAOInfo VAODrawInfo;
-	if( ::g_pVAOManager->lookupVAOFromName( meshToDraw, VAODrawInfo ) == false )
-	{	// Didn't find mesh
-		std::cout << "WARNING: Didn't find mesh " << meshToDraw << " in VAO Manager" << std::endl;
-		return;
-	}
-
-	// There IS something to draw
-
-	// 'model' or 'world' matrix
-	glm::mat4x4 mModel = glm::mat4x4( 1.0f );	//		mat4x4_identity(m);
-
-	glm::mat4 trans = glm::mat4x4( 1.0f );
-	trans = glm::translate( trans,
-		pTheGO->position );
-	mModel = mModel * trans;
-
-	// Now with quaternion rotation
-	// Like many things in GML, the conversion is done in the constructor
-	glm::mat4 postRotQuat = glm::mat4( pTheGO->qOrientation );
-	mModel = mModel * postRotQuat;
-
-	//mModel = mModel * trans * postRotQuat;
-
-	float finalScale = pTheGO->scale;
-
-	glm::mat4 matScale = glm::mat4x4( 1.0f );
-	matScale = glm::scale( matScale,
-		glm::vec3( finalScale,
-			finalScale,
-			finalScale ) );
-	mModel = mModel * matScale;
-
-
-	glUniformMatrix4fv( uniLoc_mModel, 1, GL_FALSE,
-		( const GLfloat* )glm::value_ptr( mModel ) );
-
-	glm::mat4 mWorldInTranpose = glm::inverse( glm::transpose( mModel ) );
-
-	glUniform4f( uniLoc_materialDiffuse,
-		pTheGO->diffuseColour.r,
-		pTheGO->diffuseColour.g,
-		pTheGO->diffuseColour.b,
-		pTheGO->diffuseColour.a );
-
-	if( pTheGO->bIsWireFrame )
-	{
-		glUniform1f( uniLoc_bIsDebugWireFrameObject, 1.0f );	// TRUE
-	}
-	else
-	{
-		glUniform1f( uniLoc_bIsDebugWireFrameObject, 0.0f );	// FALSE
-	}
-
-	// Set up the textures
-	std::string textureName = pTheGO->textureNames[0];
-	GLuint texture00Number
-		= ::g_pTextureManager->getTextureIDFromName( textureName );
-	// Texture binding... (i.e. set the 'active' texture
-	GLuint texture00Unit = 0;							// Texture units go from 0 to 79 (at least)
-	glActiveTexture( texture00Unit + GL_TEXTURE0 );		// GL_TEXTURE0 = 33984
-	glBindTexture( GL_TEXTURE_2D, texture00Number );
-
-	// 0 
-	glActiveTexture( GL_TEXTURE0 );
-	glBindTexture( GL_TEXTURE_2D,
-		::g_pTextureManager->getTextureIDFromName( pTheGO->textureNames[0] ) );
-	//::g_pTextureManager->getTextureIDFromName("Utah_Teapot_xyz_n_uv_Enterprise.bmp"));
-	// 1
-	glActiveTexture( GL_TEXTURE1 );
-	glBindTexture( GL_TEXTURE_2D,
-		::g_pTextureManager->getTextureIDFromName( pTheGO->textureNames[1] ) );
-	//::g_pTextureManager->getTextureIDFromName("GuysOnSharkUnicorn.bmp"));
-	// 2..  and so on... 
-
-	// Set sampler in the shader
-	// NOTE: You shouldn't be doing this during the draw call...
-	GLint curShaderID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
-	GLint textSampler00_ID = glGetUniformLocation( curShaderID, "myAmazingTexture00" );
-	GLint textSampler01_ID = glGetUniformLocation( curShaderID, "myAmazingTexture01" );
-	//// And so on (up to 10, or whatever number of textures)... 
-
-	GLint textBlend00_ID = glGetUniformLocation( curShaderID, "textureBlend00" );
-	GLint textBlend01_ID = glGetUniformLocation( curShaderID, "textureBlend01" );
-
-	//// This connects the texture sampler to the texture units... 
-	//glUniform1i( textSampler00_ID, 0  );		// Enterprise
-	//glUniform1i( textSampler01_ID, 1  );		// GuysOnSharkUnicorn
-	// .. and so on
-
-	// And the blending values
-	glUniform1f( textBlend00_ID, pTheGO->textureBlend[0] );
-	glUniform1f( textBlend01_ID, pTheGO->textureBlend[1] );
-	// And so on...
-
-	//GLint isSkyBoxID = glGetUniformLocation( curShaderID, "isASkyBox" );
-	//glUniform1f( isSkyBoxID, 0.0f ); // OR GLFALSE
-
-	//// Is this the "skybox object" (a sphere, in our case)
-	//if( pTheGO->bIsSkyBoxObject )
-	//{
-	//	GLint cubeSampID = glGetUniformLocation( curShaderID, "skyBoxSampler" );
-
-	//	// Set the isSkyBox
-	//	glUniform1f( isSkyBoxID, GL_TRUE ); // OR GL_TRUE
-
-	//										//GLuint textureUnitNum = 8;	// Doesn't really matter which one // Texture units go from 0 to 79 (at least)
-	//										//glActiveTexture(textureUnitNum + GL_TEXTURE0);		// GL_TEXTURE0 = 33984
-	//	glActiveTexture( GL_TEXTURE0 );
-
-	//	// Set up the textures SAME AS WITH ANY OTHER TEXTURE
-	//	GLuint skyBoxTextueID = ::g_pTextureManager->getTextureIDFromName( "space" );
-
-	//	//glEnable( GL_TEXTURE_CUBE_MAP );
-	//	glGenTextures( 1, &skyBoxTextueID );
-
-	//	//// Set up the textures SAME AS WITH ANY OTHER TEXTURE
-	//	//GLuint skyBoxTextueID = ::g_pTextureManager->getTextureIDFromName("space");
-	//	// Texture binding... (i.e. set the 'active' texture
-	//	//GLuint textureUnitNum = 8;	// Doesn't really matter which one // Texture units go from 0 to 79 (at least)
-	//	//glActiveTexture(textureUnitNum + GL_TEXTURE0);		// GL_TEXTURE0 = 33984
-	//	// Connects texture UNIT to the texture
-
-	//	//glBindTexture(GL_TEXTURE_CUBE_MAP, skyBoxTextueID);
-
-	//	//glBindTexture( GL_TEXTURE_2D, skyBoxTextueID );
-	//	glBindTexture( GL_TEXTURE_CUBE_MAP, skyBoxTextueID );
-
-	//	//glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	//	//glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-	//	//glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-	//	//glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-	//	//glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
-
-	//	//// Set sampler to same texture UNIT
-	//	//glUniform1f(cubeSampID, textureUnitNum);
-
-	//}//if (pTheGO->bIsSkyBoxObject)
-
-	if( g_bIsWireframe || pTheGO->bIsWireFrame )
-	{
-		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );	// Default
-//		glEnable(GL_DEPTH_TEST);		// Test for z and store in z buffer
-		glDisable( GL_CULL_FACE );
-	}
-	else
-	{
-		//glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );	// Default
-		glPolygonMode( GL_FRONT, GL_FILL );	// Default
-		glEnable( GL_DEPTH_TEST );		// Test for z and store in z buffer
-		glEnable( GL_CULL_FACE );
-	}
-
-	glCullFace( GL_BACK );	
-
-	glBindVertexArray( VAODrawInfo.VAO_ID );
-
-	glDrawElements( GL_TRIANGLES,
-		VAODrawInfo.numberOfIndices,		// testMesh.numberOfTriangles * 3,	// How many vertex indices
-		GL_UNSIGNED_INT,					// 32 bit int 
-		0 );
-	// Unbind that VAO
-	glBindVertexArray( 0 );
 
 	return;
 }
@@ -1357,4 +1203,54 @@ void ProcessCameraInput( GLFWwindow *window, double deltaTime )
 		::g_pTheMouseCamera->ProcessKeyboard( UP, ( float )deltaTime );
 	if( glfwGetKey( window, GLFW_KEY_E ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( DOWN, ( float )deltaTime );
+}
+
+void setWindowFullScreenOrWindowed( GLFWwindow* pTheWindow, bool IsFullScreen )
+{
+	// Set full-screen or windowed
+	if( ::g_IsWindowFullScreen )
+	{
+		// Find the size of the primary monitor
+		GLFWmonitor* pPrimaryScreen = glfwGetPrimaryMonitor();
+		const GLFWvidmode* pPrimMonVidMode = glfwGetVideoMode( pPrimaryScreen );
+		// Set this window to full screen, matching the size of the monitor:
+		glfwSetWindowMonitor( pTheWindow, pPrimaryScreen,
+							  0, 0,				// left, top corner 
+							  pPrimMonVidMode->width, pPrimMonVidMode->height,
+							  GLFW_DONT_CARE );	// refresh rate
+
+		std::cout << "Window now fullscreen at ( "
+			<< pPrimMonVidMode->width << " x "
+			<< pPrimMonVidMode->height << " )" << std::endl;
+	}
+	else
+	{
+		// Make the screen windowed. (i.e. It's CURRENTLY full-screen)
+		// NOTE: We aren't saving the "old" windowed size - you might want to do that...
+		// HACK: Instead, we are taking the old size and mutiplying it by 75% 
+		// (the thinking is: the full-screen switch always assumes we want the maximum
+		//	resolution - see code above - but when we make that maximum size windowed,
+		//  it's going to be 'too big' for the screen)
+		GLFWmonitor* pPrimaryScreen = glfwGetPrimaryMonitor();
+		const GLFWvidmode* pPrimMonVidMode = glfwGetVideoMode( pPrimaryScreen );
+
+		// Put the top, left corner 10% of the size of the full-screen
+		int topCornerTop = ( int )( ( float )pPrimMonVidMode->height * 0.1f );
+		int topCornerLeft = ( int )( ( float )pPrimMonVidMode->width * 0.1f );
+		// Make the width and height 75% of the full-screen resolution
+		int height = ( int )( ( float )pPrimMonVidMode->height * 0.75f );
+		int width = ( int )( ( float )pPrimMonVidMode->width * 0.75f );
+
+		glfwSetWindowMonitor( pTheWindow, NULL,		// This NULL makes the screen windowed
+							  topCornerLeft, topCornerTop,				// left, top corner 
+							  width, height,
+							  GLFW_DONT_CARE );	// refresh rate
+
+		std::cout << "Window now windowed at ( "
+			<< width << " x " << height << " )"
+			<< " and offset to ( "
+			<< topCornerLeft << ", " << topCornerTop << " )"
+			<< std::endl;
+	}
+	return;
 }

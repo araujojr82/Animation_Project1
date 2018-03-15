@@ -10,29 +10,48 @@
 //// The vertex layout as defined by the shader
 //// Where's the Best Place to put this?? 
 //// (good question)
-
-#include "sVertex_xyz_rgba_n_uv2_bt.h"			
+//class cVertex
+//{
+//public:
+//    float x, y, z;		// Position (vec2)	float x, y;	
+//    float r, g, b;		// Colour (vec3)
+//	float nx, ny, nz;	// Now with normals!
+//};
+//#include "sVertex_xyz_rgba_n_uv2_bt.h"			
+#include "sVertex_xyz_rgba_n_uv2_bt_4Bones.h"
 
 cVAOMeshManager::cVAOMeshManager()
 {
+	InitializeCriticalSection( &( this->m_CS_mapNumberToName ) );
+	InitializeCriticalSection( &( this->m_CS_mapNameToVAO ) );
+	InitializeCriticalSection( &( this->m_CS_mapNameToMesh ) );
+
+	this->m_mapNumberToName_IsLocked = false;
+	this->m_mapNameToVAO_Is_Locked = false;
+	this->m_mapNameToMesh_Is_Locked = false;
 
 	return;
 }
 
 cVAOMeshManager::~cVAOMeshManager()
 {
-
+	DeleteCriticalSection( &( this->m_CS_mapNumberToName ) );
+	DeleteCriticalSection( &( this->m_CS_mapNameToVAO ) );
+	DeleteCriticalSection( &( this->m_CS_mapNameToMesh ) );
 	return;
 }
 
 bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepMesh /*=false*/ )
 {
-	// ********************************************************************
-	//        ___  __  ___  ___         __        ___ ___  ___  __
-	//	\  / |__  |__)  |  |__  \_/    |__) |  | |__ | __ | __ |__)
-	//	 \/  |___ |  \  |  |___ / \    |__) \__/ |   |    |___ |  \
-	//
-	// ********************************************************************
+	// ******************************************************************************
+	//__      __       _              ____         __  __          
+	//\ \    / /      | |            |  _ \       / _|/ _|         
+	// \ \  / /__ _ __| |_ _____  __ | |_) |_   _| |_| |_ ___ _ __ 
+	//  \ \/ / _ \ '__| __/ _ \ \/ / |  _ <| | | |  _|  _/ _ \ '__|
+	//   \  /  __/ |  | ||  __/>  <  | |_) | |_| | | | ||  __/ |   
+	//    \/ \___|_|   \__\___/_/\_\ |____/ \__,_|_| |_| \___|_|   
+	//                                                             
+	// ******************************************************************************
 
 	sVAOInfo theVAOInfo;
 
@@ -46,7 +65,8 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 
 	// Allocate the global vertex array
 	//cVertex* pVertices = new cVertex[theMesh.numberOfVertices];
-	sVertex_xyz_rgba_n_uv2_bt* pVertices = new sVertex_xyz_rgba_n_uv2_bt[theMesh.numberOfVertices];
+	//sVertex_xyz_rgba_n_uv2_bt* pVertices = new sVertex_xyz_rgba_n_uv2_bt[theMesh.numberOfVertices];
+	sVertex_xyz_rgba_n_uv2_bt_4Bones * pVertices = new sVertex_xyz_rgba_n_uv2_bt_4Bones[theMesh.numberOfVertices];
 
 	for( int index = 0; index < theMesh.numberOfVertices; index++ )
 	{
@@ -77,22 +97,34 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 		pVertices[index].ty = theMesh.pVertices[index].ty;
 		pVertices[index].tz = theMesh.pVertices[index].tz;
 
+		pVertices[index].boneID[0] = theMesh.pVertices[index].boneID[0];
+		pVertices[index].boneID[1] = theMesh.pVertices[index].boneID[1];
+		pVertices[index].boneID[2] = theMesh.pVertices[index].boneID[2];
+		pVertices[index].boneID[3] = theMesh.pVertices[index].boneID[3];
+
+		pVertices[index].boneWeights[0] = theMesh.pVertices[index].boneWeights[0];
+		pVertices[index].boneWeights[1] = theMesh.pVertices[index].boneWeights[1];
+		pVertices[index].boneWeights[2] = theMesh.pVertices[index].boneWeights[2];
+		pVertices[index].boneWeights[3] = theMesh.pVertices[index].boneWeights[3];
+
 		// Or, since these are the same, you could simply assign one to the other...
 		//		pVertices[index] = theMesh.pVertices[index];
 	}
 
 	// Copy the local vertex array into the GPUs memory
 	//int sizeOfGlobalVertexArrayInBytes = sizeof(cVertex) * theMesh.numberOfVertices;
-	int sizeOfGlobalVertexArrayInBytes = sizeof( sVertex_xyz_rgba_n_uv2_bt ) * theMesh.numberOfVertices;
+	//int sizeOfGlobalVertexArrayInBytes = sizeof(sVertex_xyz_rgba_n_uv2_bt) * theMesh.numberOfVertices;
+	int sizeOfGlobalVertexArrayInBytes = sizeof( sVertex_xyz_rgba_n_uv2_bt_4Bones ) * theMesh.numberOfVertices;
 	glBufferData( GL_ARRAY_BUFFER,
-		sizeOfGlobalVertexArrayInBytes,		// sizeof(vertices), 
-		pVertices,
-		GL_STATIC_DRAW );
+				  sizeOfGlobalVertexArrayInBytes,		// sizeof(vertices), 
+				  pVertices,
+				  GL_STATIC_DRAW );
 
 	// Get rid of local vertex array
 	delete[] pVertices;
 	// ******************************************************************************
-	
+	// ******************************************************************************
+
 	glGenBuffers( 1, &( theVAOInfo.index_buffer_ID ) );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, theVAOInfo.index_buffer_ID ); // It's now an Index Buffer
 
@@ -102,6 +134,7 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 																		 // Number of indices = number of tris x 3 (3 indices per triangle)
 	int numberOfIndices = theMesh.numberOfTriangles * 3;
 
+	//unsigned int indexArray[ 10000000 ];		// CAN'T DO THIS, unfortunately
 	unsigned int* indexArray = new unsigned int[numberOfIndices];
 
 	// Copy the triangle data into this 1D array 
@@ -117,9 +150,9 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 	int sizeOfIndexArrayInBytes = sizeof( unsigned int ) * numberOfIndices;
 
 	glBufferData( GL_ELEMENT_ARRAY_BUFFER,		// "index buffer" or "vertex index buffer"
-		sizeOfIndexArrayInBytes,
-		indexArray,
-		GL_STATIC_DRAW );
+				  sizeOfIndexArrayInBytes,
+				  indexArray,
+				  GL_STATIC_DRAW );
 
 	// Don't need local array anymore (like the on in CPU RAM)
 	delete[] indexArray;
@@ -131,67 +164,137 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 	GLuint vpos_location = glGetAttribLocation( shaderID, "vPos" );		// program, "vPos");	// 6
 	GLuint vcol_location = glGetAttribLocation( shaderID, "vCol" );		// program, "vCol");	// 13
 	GLuint vnorm_location = glGetAttribLocation( shaderID, "vNorm" );		// program, "vCol");	// 13
-	
-	// Added for Texture
+																			// ADDED: December 4
 	GLuint vUVx2_location = glGetAttribLocation( shaderID, "uvX2" );		// program, "vCol");	// 13
-
-	// Size of the vertex we are using in the array.
-	// This is called the "stride" of the vertices in the vertex buffer
-	const unsigned int VERTEX_SIZE_OR_STRIDE_IN_BYTES = sizeof( sVertex_xyz_rgba_n_uv2_bt );
-
-	glEnableVertexAttribArray( vpos_location );
-	const unsigned int OFFSET_TO_X_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt, x );
-	glVertexAttribPointer( vpos_location,
-							3,				// now vec3, not vec2   
-							GL_FLOAT,
-							GL_FALSE,
-							VERTEX_SIZE_OR_STRIDE_IN_BYTES,		//sizeof(float) * 9,	// cVertex is 6 floats in size
-							reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_X_IN_CVERTEX ) ) );	// 64-bit
+																			// ADDED: February 12 for the skinned mesh
+	GLuint vTangent_location = glGetAttribLocation( shaderID, "vTangent" );				// in vec3 vTangent;
+	GLuint vBitangent_location = glGetAttribLocation( shaderID, "vBitangent" );			// in vec3 vBitangent;
+	GLuint vBoneIDs_x4_location = glGetAttribLocation( shaderID, "vBoneIDs_x4" );			// in vec4 vBoneIDs_x4;		
+	GLuint vBoneWeights_x4_location = glGetAttribLocation( shaderID, "vBoneWeights_x4" );	// 	in vec4 vBoneWeights_x4;	
 
 
-	glEnableVertexAttribArray( vcol_location );
-	const unsigned int OFFSET_TO_R_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt, r );
-	glVertexAttribPointer( vcol_location,
-							4,				// Was 3, but now has alpha
-							GL_FLOAT,
-							GL_FALSE,
-							VERTEX_SIZE_OR_STRIDE_IN_BYTES,		// sizeof(float) * 9,		// (  sizeof(cVertex)  );
-							reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_R_IN_CVERTEX ) ) );	// 64-bit
+																							//	vec3 vPos,		x = 0th location in this class
+																							//	vec3 vCol       r = 3rd location in this class
 
-	// Now we also have normals on the vertex
-	glEnableVertexAttribArray( vnorm_location );
-	const unsigned int OFFSET_TO_NX_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt, nx );
-	glVertexAttribPointer( vnorm_location,
-							3,
-							GL_FLOAT,
-							GL_FALSE,
-							VERTEX_SIZE_OR_STRIDE_IN_BYTES,		// sizeof(float) * 9,		// (  sizeof(cVertex)  );
-							reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_NX_IN_CVERTEX ) ) );	// 64-bit
+																							// Size of the vertex we are using in the array.
+																							// This is called the "stride" of the vertices in the vertex buffer
+	const unsigned int VERTEX_SIZE_OR_STRIDE_IN_BYTES = sizeof( sVertex_xyz_rgba_n_uv2_bt_4Bones );
 
-	// ***************************************************************
-	// Now we also have UVs on the vertex
-	glEnableVertexAttribArray( vUVx2_location );
-	const unsigned int OFFSET_TO_UVs_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt, u1 );
-	glVertexAttribPointer( vUVx2_location,
-							4,				// because "vec4"
-							GL_FLOAT,			// vec is a float 
-							GL_FALSE,			// normalize or not
-							VERTEX_SIZE_OR_STRIDE_IN_BYTES,		// sizeof(float) * 9,		// (  sizeof(cVertex)  );
-							reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_UVs_IN_CVERTEX ) ) );	// 64-bit
-	// *******************************************************************
+	{//STARTOF: "in vec3 vPos;" or "float x, y, z;"
+		glEnableVertexAttribArray( vpos_location );
+		const unsigned int OFFSET_TO_X_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, x );
+		glVertexAttribPointer( vpos_location,
+							   3,				// now vec3, not vec2   
+							   GL_FLOAT,
+							   GL_FALSE,
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,		//sizeof(float) * 9,	// cVertex is 6 floats in size
+																	// or you could do: sizeof( cVertex ), 
+																	//	  (void*) (sizeof(float) * offsetOf_x_into_cVertex) );		
+																	//	  (void*) offsetof( cVertex, x ) );
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_X_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec3 vPos;" or "float x, y, z;"
 
-	// Copy the information into the VAOInfo structure
+	{//STARTOF: "in vec4 vCol;" or "float r, g, b, a;"
+		glEnableVertexAttribArray( vcol_location );
+		const unsigned int OFFSET_TO_R_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, r );
+		glVertexAttribPointer( vcol_location,
+							   4,				// Was 3, but now has alpha
+							   GL_FLOAT,
+							   GL_FALSE,
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,		// sizeof(float) * 9,		// (  sizeof(cVertex)  );
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_R_IN_CVERTEX ) ) );	// 64-bit
+	}// ENDOF: "in vec4 vCol;" or "float r, g, b, a;"
+
+	{//STARTOF: "in vec3 vNorm;" or "float nx, ny, nz;"
+		glEnableVertexAttribArray( vnorm_location );
+		const unsigned int OFFSET_TO_NX_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, nx );
+		glVertexAttribPointer( vnorm_location,
+							   3,
+							   GL_FLOAT,
+							   GL_FALSE,
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_NX_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec3 vNorm;" or "float nx, ny, nz;"
+
+	{//STARTOF: "in vec4 uvX2;" or "float u1, v1, u2, v2;"
+		glEnableVertexAttribArray( vUVx2_location );
+		const unsigned int OFFSET_TO_UVs_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, u1 );
+		glVertexAttribPointer( vUVx2_location,
+							   4,				// because "vec4"
+							   GL_FLOAT,			// vec is a float 
+							   GL_FALSE,			// normalize or not
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_UVs_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec4 uvX2;" or "float u1, v1, u2, v2;"
+	 // *******************************************************************
+	{//STARTOF: "in vec3 vTangent;" or "float tx, ty, tz;"
+		glEnableVertexAttribArray( vTangent_location );
+		const unsigned int OFFSET_TO_vTangent_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, tx );
+		glVertexAttribPointer( vTangent_location,
+							   3,				// because "vec3"
+							   GL_FLOAT,			// vec is a float 
+							   GL_FALSE,			// normalize or not
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_vTangent_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec3 vTangent;" or "float tx, ty, tz;"
+
+	{//STARTOF: "in vec3 vBitangent;" or "float bx, by, bz;"
+	 //GLuint vBitangent_location = glGetAttribLocation(shaderID, "vBitangent");			// in vec3 vBitangent;
+		glEnableVertexAttribArray( vBitangent_location );
+		const unsigned int OFFSET_TO_vBitangent_IN_CVERTEX = offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, bx );
+		glVertexAttribPointer( vBitangent_location,
+							   3,				// because "vec3"
+							   GL_FLOAT,			// vec is a float 
+							   GL_FALSE,			// normalize or not
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_vBitangent_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec3 vBitangent;" or "float bx, by, bz;"
+
+	{//STARTOF: "in vec4 vBoneIDs_x4;" or "float boneID[NUMBEROFBONES];"
+	 //GLuint vBoneIDs_x4_location = glGetAttribLocation(shaderID, "vBoneIDs_x4");			// in vec4 vBoneIDs_x4;		
+		glEnableVertexAttribArray( vBoneIDs_x4_location );
+		const unsigned int OFFSET_TO_vBoneIDs_x4_IN_CVERTEX
+			= ( unsigned int )offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, boneID[0] );
+		glVertexAttribPointer( vBoneIDs_x4_location,
+							   4,				// because "vec4"
+							   GL_FLOAT,			// vec is a float 
+							   GL_FALSE,			// normalize or not
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_vBoneIDs_x4_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec4 vBoneIDs_x4;" or "float boneID[NUMBEROFBONES];"
+
+	{//STARTOF: "in vec4 vBoneWeights_x4;" or "float boneWeights[NUMBEROFBONES];"
+	 //GLuint vBoneWeights_x4_location = glGetAttribLocation(shaderID, "vBoneWeights_x4");	// 	in vec4 vBoneWeights_x4;	
+		glEnableVertexAttribArray( vBoneWeights_x4_location );
+		const unsigned int OFFSET_TO_vBoneWeights_x4_IN_CVERTEX
+			= ( unsigned int )offsetof( sVertex_xyz_rgba_n_uv2_bt_4Bones, boneWeights[0] );
+		glVertexAttribPointer( vBoneWeights_x4_location,
+							   4,				// because "vec4"
+							   GL_FLOAT,			// vec is a float 
+							   GL_FALSE,			// normalize or not
+							   VERTEX_SIZE_OR_STRIDE_IN_BYTES,
+							   reinterpret_cast<void*>( static_cast<uintptr_t>( OFFSET_TO_vBoneWeights_x4_IN_CVERTEX ) ) );	// 64-bit
+	}//ENDOF: "in vec4 vBoneWeights_x4;" or "float boneWeights[NUMBEROFBONES];"
+
+
+
+	 // Copy the information into the VAOInfo structure
 	theVAOInfo.numberOfIndices = theMesh.numberOfTriangles * 3;
 	theVAOInfo.numberOfTriangles = theMesh.numberOfTriangles;
 	theVAOInfo.numberOfVertices = theMesh.numberOfVertices;
 	theVAOInfo.friendlyName = theMesh.name;
 	theVAOInfo.shaderID = shaderID;
 
+
 	theMesh.CalculateExtents();
 	theVAOInfo.scaleForUnitBBox = theMesh.scaleForUnitBBox;
 
 	// Store the VAO info by mesh name
+	this->Lock_mapNameToVAO();
+	//EnterCriticalSection( & this->m_CS_mapNameToVAO );
 	this->m_mapNameToVAO[theMesh.name] = theVAOInfo;
+	//LeaveCriticalSection( & this->m_CS_mapNameToVAO );
+	this->UnLock_mapNameToVAO();
 
 	//std::string myArray[10];
 	//myArray[3] = "Michael"
@@ -200,19 +303,26 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 	// Unbind the VAO first!!!!
 	glBindVertexArray( 0 );	// 
 
-	// Unbind (release) everything
+							// Unbind (release) everything
 	glBindBuffer( GL_ARRAY_BUFFER, 0 );
 	glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	glDisableVertexAttribArray( vcol_location );
 	glDisableVertexAttribArray( vpos_location );
 	glDisableVertexAttribArray( vnorm_location );
 	glDisableVertexAttribArray( vUVx2_location );
+	// ADDED: February 12 for the skinned mesh
+	glDisableVertexAttribArray( vTangent_location );				// in vec3 vTangent;
+	glDisableVertexAttribArray( vBitangent_location );			// in vec3 vBitangent;
+	glDisableVertexAttribArray( vBoneIDs_x4_location );			// in vec4 vBoneIDs_x4;		
+	glDisableVertexAttribArray( vBoneWeights_x4_location );		// 	in vec4 vBoneWeights_x4;	
 
-	// Save this mesh? 
+																// Save this mesh? 
 	if( bKeepMesh )
 	{	// Make a COPY for later...
 		//std::map< std::string, cMesh > m_mapNameToMesh;
+		this->Lock_mapNameToMesh();
 		this->m_mapNameToMesh[theMesh.name] = theMesh;
+		this->UnLock_mapNameToMesh();
 	}//if (bKeepMesh)
 
 	return true;
@@ -221,18 +331,23 @@ bool cVAOMeshManager::loadMeshIntoVAO( cMesh &theMesh, int shaderID, bool bKeepM
 bool cVAOMeshManager::lookupMeshFromName( std::string name, cMesh &theMesh )
 {
 	// Search for mesh by name using iterator based find
+	this->Lock_mapNameToMesh();
 	std::map< std::string, cMesh >::iterator itMesh =
 		this->m_mapNameToMesh.find( name );
 
 	// Find it? 
 	if( itMesh == this->m_mapNameToMesh.end() )
 	{	// Nope. 
+		this->UnLock_mapNameToMesh();
 		return false;
 	}
 	// Found the mesh (DIDN'T return .end())
 	theMesh = itMesh->second;		// "return" the mesh by reference 
+	this->UnLock_mapNameToMesh();
 	return true;
 }
+
+
 
 bool cVAOMeshManager::lookupVAOFromName( std::string name, sVAOInfo &theVAOInfo )
 {
@@ -240,16 +355,82 @@ bool cVAOMeshManager::lookupVAOFromName( std::string name, sVAOInfo &theVAOInfo 
 
 	//	std::map< std::string, sVAOInfo > m_mapNameToVAO;
 	// "Interator" is a class that can access inside a container
+	this->Lock_mapNameToVAO();
 	std::map< std::string, sVAOInfo >::iterator itVAO = this->m_mapNameToVAO.find( name );
 
 	// Did I find something?
 	if( itVAO == this->m_mapNameToVAO.end() )
 	{	// ON NO! we DIDN'T!
+		this->UnLock_mapNameToVAO();
 		return false;
 	}
 	// DID find what we were looking for, so 
 	//	ISN'T pointing to the "end()" built-in iterator
 	theVAOInfo = itVAO->second;		// Because the "second" thing is the sVAO
+	this->UnLock_mapNameToVAO();
 
 	return true;
 }
+
+bool cVAOMeshManager::IsLocked_mapNumberToName( void )
+{
+	return this->m_mapNumberToName_IsLocked;
+}
+
+bool cVAOMeshManager::IsLocked_mapNameToVAO( void )
+{
+	return this->m_mapNameToVAO_Is_Locked;
+}
+
+bool cVAOMeshManager::IsLocked_mapNameToMesh( void )
+{
+	return this->m_mapNameToMesh_Is_Locked;
+}
+
+// STARTOF: mapNumberToName
+void cVAOMeshManager::Lock_mapNumberToName( void )
+{
+	//EnterCriticalSection( &(this->m_CS_mapNumberToName) );
+	this->m_mapNumberToName_IsLocked = true;
+	return;
+}
+
+void cVAOMeshManager::UnLock_mapNumberToName( void )
+{
+	this->m_mapNumberToName_IsLocked = false;
+	//LeaveCriticalSection( &(this->m_CS_mapNumberToName) );
+	return;
+}
+// ENDOF: mapNumberToName
+
+// STARTOF: mapNameToVAO
+void cVAOMeshManager::Lock_mapNameToVAO( void )
+{
+	//EnterCriticalSection(&( this->m_CS_mapNameToVAO ));
+	this->m_mapNameToVAO_Is_Locked = true;
+	return;
+}
+
+void cVAOMeshManager::UnLock_mapNameToVAO( void )
+{
+	this->m_mapNameToVAO_Is_Locked = false;
+	//LeaveCriticalSection(&( this->m_CS_mapNameToVAO ));
+	return;
+}
+// ENDOF: mapNameToVAO
+
+// STARTOF: mapNameToMesh
+void cVAOMeshManager::Lock_mapNameToMesh( void )
+{
+	//EnterCriticalSection( &(this->m_CS_mapNameToMesh) );
+	this->m_mapNameToMesh_Is_Locked = true;
+	return;
+}
+
+void cVAOMeshManager::UnLock_mapNameToMesh( void )
+{
+	this->m_mapNameToMesh_Is_Locked = false;
+	//LeaveCriticalSection(&( this->m_CS_mapNameToMesh ));
+	return;
+}
+// ENDOF: mapNameToMesh

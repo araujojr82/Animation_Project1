@@ -72,29 +72,12 @@ glm::vec3 movement = glm::vec3( 0.0f );
 		break;
 
 	case GLFW_KEY_N:
-		if( ::g_pThePlayerGO )
-		{
-			::g_pThePlayerGO->textureBlend[0] -= 0.01f;
-			if( ::g_pThePlayerGO->textureBlend[0] <= 0.0f )
-			{
-				::g_pThePlayerGO->textureBlend[0] = 0.0f;
-			}
-			::g_pThePlayerGO->textureBlend[1] = 1.0f - ::g_pThePlayerGO->textureBlend[0];
-		}
-		break;
-	case GLFW_KEY_M:
-		if( ::g_pThePlayerGO )
-		{
-			::g_pThePlayerGO->textureBlend[0] += 0.01f;
-			if( ::g_pThePlayerGO->textureBlend[0] > 1.0f )
-			{
-				::g_pThePlayerGO->textureBlend[0] = 1.0f;
-			}
-			::g_pThePlayerGO->textureBlend[1] = 1.0f - ::g_pThePlayerGO->textureBlend[0];
-		}
 		break;
 
-		// CAMERA and lighting
+	case GLFW_KEY_M:
+		break;
+
+	// CAMERA and lighting
 	case GLFW_KEY_A:		// Left
 							//		g_cameraTarget_XYZ.x -= CAMERASPEED;
 		if( isShiftKeyDown( mods, true ) )

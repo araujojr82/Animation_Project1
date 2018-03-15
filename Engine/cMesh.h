@@ -1,7 +1,8 @@
 #ifndef _cMesh_HG_
 #define _cMesh_HG_
 
-#include "sVertex_xyz_rgba_n_uv2_bt.h"
+//#include "sVertex_xyz_rgba_n_uv2_bt.h"
+#include "sVertex_xyz_rgba_n_uv2_bt_4Bones.h"
 #include "cTriangle.h" 
 #include <vector>
 
@@ -22,7 +23,8 @@ public:
 	std::string name; // the friendly name of the mesh
 
 	// Array of vertices 
-	sVertex_xyz_rgba_n_uv2_bt* pVertices;				// Heap
+	//sVertex_xyz_rgba_n_uv2_bt* pVertices;				// Heap
+	sVertex_xyz_rgba_n_uv2_bt_4Bones* pVertices;	
 	int numberOfVertices;
 
 	// Array of triangles (indices)

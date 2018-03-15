@@ -5,6 +5,8 @@
 // It's also the vertex representation used in cMesh
 // (it replaces the cVertex in the cVAOMeshManager and the cVertex_xyz_rgb_n structures)
 
+#error "DON'T USE THIS FILE: sVertex_xyz_rgba_n_uv2_bt"
+
 struct sVertex_xyz_rgba_n_uv2_bt
 {
 	sVertex_xyz_rgba_n_uv2_bt() :

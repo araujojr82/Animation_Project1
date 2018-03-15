@@ -6,8 +6,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include "sVAOInfo.h"		
-#include "iDebugRenderer.h"
+#include "sVAOInfo.h"
 
 // Note: 
 // - Include this header in the thing(s) that MANAGE the debug render
@@ -34,7 +33,7 @@ public:
 	bool resizeBufferForPoints(unsigned int newNumberOfPoints);
 
 	// Renders scene
-	void RenderDebugObjects(glm::mat4 matCameraView, glm::mat4 matProjection);
+	void RenderDebugObjects(glm::mat4 matCameraView, glm::mat4 matProjection );
 
 	// These are now in the iDebugRenderer
 	//struct sDebugTri
@@ -89,6 +88,20 @@ public:
 	bool setVertexShader(std::string vertexShaderSource);
 	bool setFragmentShader(std::string fragmentShaderSource);
 	bool setShaders(std::string vertexShaderSource, std::string fragmentShaderSource);
+
+	// Quick-n-Dirty utility to convert ply format to "flat" (only triangle) format
+	bool QnD_convertIndexedXYZPlyToTriangleOnlyVertices( std::string &plyText, std::vector<sDebugTri> &vecTris );
+	bool QnD_convertIndexedXYZPlyFileToTriangleOnlyVertices( std::string fileName, std::vector<sDebugTri> &vecTris );
+	// This converts a vector of sDebugTris into a header file representation
+	// "arrayName" is the name of the array and the size value:
+	// - arrayName+"_array" for the array		(example: "float teapot_array[] = ...")
+	// - arrayName+"_array_size" for the size	(example: "unsigned int teapot_array_size = ...")
+	// NOTE: Size is the TOTAL number of floats, so 3x the number of triangles. 
+	//       You pass this TOTAL number info the loadHeaderArrayInto_vecTri() method.
+	// Leave outputFileName blank to NOT save to a file.
+	bool QnD_convert_vecTri_to_array_header( std::vector<sDebugTri> &vecTris, std::string arrayName, std::string &arrayText, std::string outputFileName = "" );
+	bool QnD_loadHeaderArrayInto_vecTri( float* shapeArray, int sizeOfArray, std::vector<sDebugTri> &vecTris );
+	static const std::string DEFAULT_PLY_SPHERE_MODEL_TEXT;
 
 private:
 

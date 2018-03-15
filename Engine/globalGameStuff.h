@@ -1,4 +1,3 @@
-#pragma once
 #ifndef _globalGameStuff_HG_
 #define _globalGameStuff_HG_
 
@@ -10,9 +9,17 @@
 #include <vector>
 #include <glm/vec3.hpp>
 #include "cLightManager.h"
-//#include "cModelAssetLoader.h"
+#include "cModelAssetLoader.h"
 #include "cMouseCamera.h"
 #include "cSteeringManager.h"
+
+// ******************************************************************
+// These require the inclusion of the OpenGL and-or GLFW headers
+#include "cVAOMeshManager.h"
+#include "cShaderManager.h"
+#include "Texture/CTextureManager.h"
+#include "cDebugRenderer.h"
+// ******************************************************************
 
 // Remember to #include <vector>...
 extern std::vector< cGameObject* >  g_vecGameObjects;
@@ -31,6 +38,24 @@ const std::string PLAYERNAME = "player";		// Now that we have a lookup
 
 extern cGameObject* g_pThePlayerGO;
 
+extern cModelAssetLoader* g_pModelAssetLoader;	// (ModelUtilies.cpp)
+
 extern cMouseCamera* g_pTheMouseCamera;
+
+extern cVAOMeshManager*			g_pVAOManager;		// (theMain.cpp)
+extern cShaderManager*			g_pShaderManager;	// (theMain.cpp)
+extern CTextureManager*			g_pTextureManager;	// (theMain.cpp)
+extern cDebugRenderer*			g_pDebugRenderer;	// (theMain.cpp)
+
+void RenderScene( std::vector< cGameObject* > &vec_pGOs, GLFWwindow* pGLFWWindow, double deltaTime );
+
+extern	GLFWwindow* g_pGLFWWindow;	// In TheMain.cpp
+extern bool g_IsWindowFullScreen;	// false at start
+void setWindowFullScreenOrWindowed( GLFWwindow* pTheWindow, bool IsFullScreen );	// In TheMain.cpp
+
+// Example of skinned mesh.
+// NOTE: This is only ONE instance of an loaded FBX file model
+extern cSimpleAssimpSkinnedMesh* g_pRPGSkinnedMesh;			// In ModelUtilites.cpp
+extern cSimpleAssimpSkinnedMesh* g_pRPGSkinnedMesh2;		// In ModelUtilites.cpp
 
 #endif

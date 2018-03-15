@@ -89,7 +89,8 @@ void cMesh::FlattenIndexedModel(void)
 
 	int origNumVertices = this->numberOfVertices;
 
-	sVertex_xyz_rgba_n_uv2_bt* pVertOrig = new sVertex_xyz_rgba_n_uv2_bt[this->numberOfVertices]; // Heap
+	//sVertex_xyz_rgba_n_uv2_bt* pVertOrig = new sVertex_xyz_rgba_n_uv2_bt[this->numberOfVertices]; // Heap
+	sVertex_xyz_rgba_n_uv2_bt_4Bones* pVertOrig = new sVertex_xyz_rgba_n_uv2_bt_4Bones[this->numberOfVertices]; // Heap
 
 	for ( int index = 0; index < origNumVertices; index++ )
 	{
@@ -106,7 +107,9 @@ void cMesh::FlattenIndexedModel(void)
 	//	the number of triangles x 3...
 	int numberOfVertsNeeded = this->numberOfTriangles * 3;
 	numberOfVertsNeeded += 30;	// Add a few, just in case...
-	this->pVertices = new sVertex_xyz_rgba_n_uv2_bt[numberOfVertsNeeded];
+	//this->pVertices = new sVertex_xyz_rgba_n_uv2_bt[numberOfVertsNeeded];
+	this->pVertices = new sVertex_xyz_rgba_n_uv2_bt_4Bones[numberOfVertsNeeded];
+	
 	
 
 	int triIndex = 0;
@@ -119,9 +122,13 @@ void cMesh::FlattenIndexedModel(void)
 		int triVert1_index = this->pTriangles[triIndex].vertex_ID_1;
 		int triVert2_index = this->pTriangles[triIndex].vertex_ID_2;
 	
-		sVertex_xyz_rgba_n_uv2_bt V0 = pVertOrig[triVert0_index];
-		sVertex_xyz_rgba_n_uv2_bt V1 = pVertOrig[triVert1_index];
-		sVertex_xyz_rgba_n_uv2_bt V2 = pVertOrig[triVert2_index];
+		//sVertex_xyz_rgba_n_uv2_bt V0 = pVertOrig[triVert0_index];
+		//sVertex_xyz_rgba_n_uv2_bt V1 = pVertOrig[triVert1_index];
+		//sVertex_xyz_rgba_n_uv2_bt V2 = pVertOrig[triVert2_index];
+
+		sVertex_xyz_rgba_n_uv2_bt_4Bones V0 = pVertOrig[triVert0_index];
+		sVertex_xyz_rgba_n_uv2_bt_4Bones V1 = pVertOrig[triVert1_index];
+		sVertex_xyz_rgba_n_uv2_bt_4Bones V2 = pVertOrig[triVert2_index];
 
 
 		this->pVertices[vertIndex + 0] = V0;
