@@ -140,12 +140,12 @@ void loadConfigFile( std::string fileName, sWindowConfig& wConfig );
 sGOparameters parseObjLine( std::ifstream &source );
 void loadObjectsFile( std::string fileName );
 sMeshparameters parseMeshLine( std::ifstream &source );
-void loadMeshesFile( std::string fileName, GLint ShaderID );
+//void loadMeshesFile( std::string fileName, GLint ShaderID );
 void loadLightObjects();
 //void PhysicsStep( double deltaTime );
 void updateAllObjects( double deltaTime );
-void newPlayerGO();
-void DrawObject( cGameObject* pTheGO );
+//void newPlayerGO();
+//void DrawObject( cGameObject* pTheGO );
 float generateRandomNumber( float min, float max );
 //void updateCamera( double deltaTime );
 void mouse_callback( GLFWwindow* window, double xpos, double ypos );
@@ -556,14 +556,14 @@ int main( void )
 	::g_pTextureManager->Create2DTextureFromBMPFile( "scary.bmp", true );
 	::g_pTextureManager->Create2DTextureFromBMPFile( "meeseeks.bmp", true );		
 	::g_pTextureManager->Create2DTextureFromBMPFile( "moon.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "red.bmp", true );	
-	::g_pTextureManager->Create2DTextureFromBMPFile( "blue.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "white.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "orange.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "purple.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "gray.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "green.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "yellow.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "red.bmp", true );	
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "blue.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "white.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "orange.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "purple.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "gray.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "green.bmp", true );
+	//::g_pTextureManager->Create2DTextureFromBMPFile( "yellow.bmp", true );
 	
 	//::g_pTextureManager->SetBasePath( "assets/textures/skybox/" );
 	//if( !::g_pTextureManager->CreateNewCubeTextureFromBMPFiles(
@@ -684,7 +684,7 @@ int main( void )
 		::g_pShaderManager->useShaderProgram( "mySexyShader" );
 		
 		// Check to see if we are using Deferred Renderer
-		if( !g_bUseDeferred )
+		if( !::g_bUseDeferred )
 		{
 			// Direct everything to the FBO
 			GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
