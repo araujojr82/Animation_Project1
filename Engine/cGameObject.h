@@ -84,6 +84,34 @@ struct sAnimDesc
 		filePath( path ){}
 };
 
+struct sMovements
+{
+	bool bIsMovingForward;
+	bool bIsMovingBackward;
+	bool bIsMovingLeft;
+	bool bIsMovingRight;
+	bool bIsRunning;
+	bool bIsStrafing;
+	bool bIsTurningLeft;
+	bool bIsTurningRight;
+	bool bIsJumping;
+	bool bChangedMovement;
+	bool bIsDoingAction;
+
+	sMovements() :
+		bIsMovingForward( false ),
+		bIsMovingBackward( false ),
+		bIsMovingLeft( false ),
+		bIsMovingRight( false ),
+		bIsRunning( false ),
+		bIsStrafing( false ),
+		bIsTurningLeft( false ),
+		bIsTurningRight( false ),
+		bIsJumping( false ),
+		bChangedMovement( false ),
+		bIsDoingAction( false ) {}
+};
+
 class cGameObject
 {
 public:
@@ -92,6 +120,7 @@ public:
 	glm::vec3 position;
 	glm::vec3 prevPosition;
 
+	sMovements myMovements;
 	std::vector<sAnimDesc> myAnimations;
 	bool getAnimationPath( eAnimationType type, std::string &thePath );
 

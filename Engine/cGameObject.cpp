@@ -55,6 +55,8 @@ cGameObject::cGameObject()
 	this->maxVel = NULL;
 	this->wanderAngle = 0.0f;
 
+	this->myMovements = sMovements();
+
 	return;
 }
 
