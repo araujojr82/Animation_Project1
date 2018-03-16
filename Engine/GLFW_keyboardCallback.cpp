@@ -11,7 +11,9 @@ bool isShiftKeyDown( int mods, bool bByItself = true );
 bool isCtrlKeyDown( int mods, bool bByItself = true );
 bool isAltKeyDown( int mods, bool bByItself = true );
 
-extern void setState( eAnimationType nextAnimation );
+bool bIsWKeyDown = false;
+
+extern void setState( eGOState nextAnimation );
 
 void changePlayerGO()
 {
@@ -55,11 +57,11 @@ void changePlayerGO()
 		{
 			if( action == GLFW_PRESS )
 			{
-				setState( eAnimationType::MOVE_LEFT );
+				setState( eGOState::MOVING_LEFT );
 			}
 			if( action == GLFW_RELEASE )
 			{
-				setState( eAnimationType::NOTHING );
+				setState( eGOState::DOING_NOTHING );
 			}
 		}
 		else
@@ -71,11 +73,11 @@ void changePlayerGO()
 			{
 				if( action == GLFW_PRESS )
 				{
-					setState( eAnimationType::STRAFE_LEFT );
+					setState( eGOState::STRAFING_LEFT );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					setState( eAnimationType::NOTHING );
+					setState( eGOState::DOING_NOTHING );
 				}
 			}
 		}
@@ -86,11 +88,11 @@ void changePlayerGO()
 		{
 			if( action == GLFW_PRESS )
 			{
-				setState( eAnimationType::MOVE_RIGHT );
+				setState( eGOState::MOVING_RIGHT );
 			}
 			if( action == GLFW_RELEASE )
 			{
-				setState( eAnimationType::NOTHING );
+				setState( eGOState::DOING_NOTHING );
 			}
 		}
 		else
@@ -102,11 +104,11 @@ void changePlayerGO()
 			{	
 				if( action == GLFW_PRESS )
 				{
-					setState( eAnimationType::STRAFE_RIGHT );
+					setState( eGOState::STRAFING_RIGHT );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					setState( eAnimationType::NOTHING );
+					setState( eGOState::DOING_NOTHING );
 				}
 			}
 		}
@@ -116,11 +118,13 @@ void changePlayerGO()
 		{
 			if( action == GLFW_PRESS )
 			{
-				setState( eAnimationType::RUN );
+				setState( eGOState::RUNNING );
+				bIsWKeyDown = true;
 			}
 			if( action == GLFW_RELEASE )
 			{
-				setState( eAnimationType::NOTHING );
+				setState( eGOState::DOING_NOTHING );
+				bIsWKeyDown = false;
 			}
 		}
 		else
@@ -133,11 +137,13 @@ void changePlayerGO()
 			{
 				if( action == GLFW_PRESS )
 				{
-					setState( eAnimationType::WALK_FORWARD );
+					setState( eGOState::WALKING_FORWARD );
+					bIsWKeyDown = true;
 				}
 				if( action == GLFW_RELEASE )
 				{
-					setState( eAnimationType::NOTHING );
+					setState( eGOState::DOING_NOTHING );
+					bIsWKeyDown = false;
 				}
 			}
 		}
@@ -156,11 +162,11 @@ void changePlayerGO()
 			{	
 				if( action == GLFW_PRESS )
 				{
-					setState( eAnimationType::WALK_BACKWARD );
+					setState( eGOState::WALKING_BACKWARD );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					setState( eAnimationType::NOTHING );
+					setState( eGOState::DOING_NOTHING );
 				}				
 			}
 		}
@@ -193,11 +199,11 @@ void changePlayerGO()
 			{	
 				if( action == GLFW_PRESS )
 				{
-					setState( eAnimationType::ACTION );
+					setState( eGOState::DOING_ACTION );
 				}
 				//if( action == GLFW_RELEASE )
 				//{
-				//	setState( eAnimationType::NOTHING );
+				//	setState( eGOState::DOING_NOTHING );
 				//}
 			}
 		}
@@ -206,11 +212,26 @@ void changePlayerGO()
 	case GLFW_KEY_SPACE:
 		if( action == GLFW_PRESS )
 		{
-			setState( eAnimationType::JUMP );
+			if( bIsWKeyDown )
+			{
+				if( isShiftKeyDown( mods, true ) )
+				{
+					setState( eGOState::JUMPING_LONG );
+				}
+				else
+				{
+					setState( eGOState::JUMPING_SHORT );
+				}
+			}
+			else
+			{
+				setState( eGOState::JUMPING_STATIC );
+			}
+			
 		}
 		//if( action == GLFW_RELEASE )
 		//{
-		//	setState( eAnimationType::NOTHING );
+		//	setState( eGOState::DOING_NOTHING );
 		//}
 		break;
 

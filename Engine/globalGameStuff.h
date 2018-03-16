@@ -53,9 +53,4 @@ extern	GLFWwindow* g_pGLFWWindow;	// In TheMain.cpp
 extern bool g_IsWindowFullScreen;	// false at start
 void setWindowFullScreenOrWindowed( GLFWwindow* pTheWindow, bool IsFullScreen );	// In TheMain.cpp
 
-// Example of skinned mesh.
-// NOTE: This is only ONE instance of an loaded FBX file model
-extern cSimpleAssimpSkinnedMesh* g_pRPGSkinnedMesh;			// In ModelUtilites.cpp
-extern cSimpleAssimpSkinnedMesh* g_pRPGSkinnedMesh2;		// In ModelUtilites.cpp
-
 #endif

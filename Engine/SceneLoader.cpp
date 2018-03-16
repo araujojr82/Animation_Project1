@@ -69,7 +69,30 @@ bool createMeshFromSkinnedMesh( cSimpleAssimpSkinnedMesh* theSkinnedMesh, int sh
 
 void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 {
+	
+	{	// Scary Terry
+		cGameObject* pTempGO = new cGameObject();		
 
+		sMeshDrawInfo meshInfo;
+		meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
+		meshInfo.scale = 350.0f;
+		meshInfo.name = "scary.ply";
+
+		// Make bunny reflective...
+		meshInfo.bIsEnvirMapped = true;
+		meshInfo.reflectBlendRatio = 0.5f;
+		meshInfo.refractBlendRatio = 0.5f;
+		meshInfo.coefficientRefract = 0.1f;
+
+		pTempGO->friendlyName = "bugs";
+
+		meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "barberton_etm_2001121_lrg.bmp", 1.0f ) );
+		meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "height_map_norway-height-map-aster-30m.bmp", 0.0f ) );
+		pTempGO->vecMeshes.push_back( meshInfo );
+
+		::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
+	}
+	
 	{	// Skinned mesh  model
 		cGameObject* pTempGO = new cGameObject();
 		pTempGO->friendlyName = "Morty";
@@ -85,6 +108,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/morty/Idle.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::JUMP, "assets/models/morty/Jumping.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::FORWARD_JUMP, "assets/models/morty/Forward Jump.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_LEFT, "assets/models/morty/Walk Strafe Left.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_RIGHT, "assets/models/morty/Walk Strafe Right.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::MOVE_LEFT, "assets/models/morty/Crouched Sneaking Left.fbx" ) );
@@ -130,12 +154,13 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		pTempGO->health = 100.0f;
 		pTempGO->maxVel = 1.0f;
 		pTempGO->health = 100.0f;
-		pTempGO->scale = 0.02f;
-		pTempGO->mySpeed = sGOSpeed( 1.0f, 0.8f, 1.0f, 1.0f );
+		pTempGO->scale = 0.05f;
+		pTempGO->mySpeed = sGOSpeed( 1.5f, 0.8f, 1.0f, 1.0f );
 
 
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/rick/Idle.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::JUMP, "assets/models/rick/Jumping.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::FORWARD_JUMP, "assets/models/rick/Forward Jump.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_LEFT, "assets/models/rick/Left Strafe Walk.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_RIGHT, "assets/models/rick/Right Strafe Walk.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::MOVE_LEFT, "assets/models/rick/Crouched Sneaking Left.fbx" ) );

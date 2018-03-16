@@ -222,56 +222,66 @@ void updateCurrentAnimation( eAnimationType type, bool loopAnim = true )
 	return;
 }
 
-void setState( eAnimationType nextAnimation )
+void setState( eGOState nextState )
 {
-	bool isFinished = ::g_pThePlayerGO->pAniState->currentAnimation.isFinished;
+	eGOState theNextState = nextState;
 
-	if( nextAnimation != ::g_pThePlayerGO->currentState )
+	bool isFinished = ::g_pThePlayerGO->pAniState->currentAnimation.isFinished;
+	eAnimationType currentAnimationType = ::g_pThePlayerGO->pAniState->currentAnimationType;
+	
+	if( currentAnimationType == eAnimationType::JUMP && isFinished )
+	{
+		theNextState = eGOState::DEFAULT;
+		::g_pThePlayerGO->currentState = eGOState::DEFAULT;
+	}
+
+	if( theNextState != ::g_pThePlayerGO->currentState )
 	{
 		switch( ::g_pThePlayerGO->currentState )
 		{
-			case BASE:	// IDLE
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case DEFAULT:	// IDLE
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case JUMP:
+			case JUMPING_STATIC :
+			case JUMPING_SHORT :
+			case JUMPING_LONG :
 				if( isFinished )
-					::g_pThePlayerGO->currentState = nextAnimation;
+					::g_pThePlayerGO->currentState = theNextState;
 				// TODO: ALLOW ROTATION
 				break;
-			case STRAFE_LEFT:
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case STRAFING_LEFT:
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case STRAFE_RIGHT:
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case STRAFING_RIGHT:
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case MOVE_LEFT:
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case MOVING_LEFT:
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case MOVE_RIGHT:
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case MOVING_RIGHT:
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case RUN:
+			case RUNNING:
 				//if( nextAnimation == WALK_FORWARD ||
 				//	nextAnimation == JUMP ||
 				//	nextAnimation == NOTHING )
-					::g_pThePlayerGO->currentState = nextAnimation;
+					::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case WALK_FORWARD:
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case WALKING_FORWARD:
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case WALK_BACKWARD:
-				//if( nextAnimation != JUMP )	// CAN'T JUMP BACK!
-					::g_pThePlayerGO->currentState = nextAnimation;
+			case WALKING_BACKWARD:
+				if( theNextState != JUMPING_STATIC &&
+					theNextState != JUMPING_LONG &&
+					theNextState != JUMPING_SHORT )	// CAN'T JUMP BACK!
+					::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case ACTION:
-				::g_pThePlayerGO->currentState = nextAnimation;
+			case DOING_ACTION:
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case NOTHING:
-				::g_pThePlayerGO->currentState = nextAnimation;
-				break;
-			default:
-				//::g_pThePlayerGO->currentState = nextAnimation;
-				break;
+			case DOING_NOTHING:
+				::g_pThePlayerGO->currentState = theNextState;
+				break;			
 		}
 
 	}
@@ -280,51 +290,78 @@ void setState( eAnimationType nextAnimation )
 
 void move_player()
 {	
+	bool isFinished = ::g_pThePlayerGO->pAniState->currentAnimation.isFinished;
+	eAnimationType currentAnimationType = ::g_pThePlayerGO->pAniState->currentAnimationType;
+
 	switch( ::g_pThePlayerGO->currentState )
 	{
-		case BASE:
+		case DEFAULT:
 			std::cout << "Base ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::BASE );
 			break;
-		case JUMP:
-			std::cout << "Jump ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState, false );
+		case JUMPING_STATIC :
+			if( isFinished )
+			{
+				std::cout << "Base ";
+				::g_pThePlayerGO->currentState = eGOState::DEFAULT;
+				updateCurrentAnimation( eAnimationType::BASE );
+			}
+			else
+			{
+				std::cout << "Jump ";
+				updateCurrentAnimation( eAnimationType::JUMP, false );
+			}
 			break;
-		case STRAFE_LEFT:
+		case JUMPING_SHORT :
+		case JUMPING_LONG :
+			if( isFinished )
+			{
+				std::cout << "Base ";
+				::g_pThePlayerGO->currentState = eGOState::DEFAULT;
+				updateCurrentAnimation( eAnimationType::BASE );
+			}
+			else
+			{
+				std::cout << "Jump ";
+				updateCurrentAnimation( eAnimationType::FORWARD_JUMP, false );
+			}
+			break;
+
+		case STRAFING_LEFT:
 			std::cout << "StrafeL ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::STRAFE_LEFT );
 			break;
-		case STRAFE_RIGHT:
+		case STRAFING_RIGHT:
 			std::cout << "StrafeR ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::STRAFE_RIGHT );
 			break;
-		case MOVE_LEFT:
+		case MOVING_LEFT:
 			std::cout << "MoveL ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::MOVE_LEFT );
 			break;
-		case MOVE_RIGHT:
+		case MOVING_RIGHT:
 			std::cout << "MoveR ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::MOVE_RIGHT );
 			break;
-		case RUN:
+		case RUNNING:
 			std::cout << "Run ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::RUN );
 			break;
-		case WALK_FORWARD:
+		case WALKING_FORWARD:
 			std::cout << "WalkF ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::WALK_FORWARD );
 			break;
-		case WALK_BACKWARD:
+		case WALKING_BACKWARD:
 			std::cout << "WalkB ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::WALK_BACKWARD );
 			break;
-		case ACTION:
+		case DOING_ACTION:
 			std::cout << "Action ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState, false );
+			updateCurrentAnimation( eAnimationType::ACTION, false );
 			break;
-		case NOTHING:
+		case DOING_NOTHING:
 			std::cout << "None ";
-			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			updateCurrentAnimation( eAnimationType::NOTHING );
 			break;
 		default:
 			break;
@@ -338,8 +375,8 @@ void move_player()
 	if( isnan( ::g_pThePlayerGO->vel.y ) ) ::g_pThePlayerGO->vel.y = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.z ) ) ::g_pThePlayerGO->vel.z = 0.0f;
 	
-	if( ::g_pThePlayerGO->currentState == eAnimationType::MOVE_RIGHT ||
-		::g_pThePlayerGO->currentState == eAnimationType::STRAFE_RIGHT )
+	if( ::g_pThePlayerGO->currentState == eGOState::MOVING_RIGHT ||
+		::g_pThePlayerGO->currentState == eGOState::STRAFING_RIGHT )
 	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.right * ::g_pThePlayerGO->scale;
 
@@ -360,8 +397,8 @@ void move_player()
 		}
 
 	}
-	if( ::g_pThePlayerGO->currentState == eAnimationType::MOVE_LEFT ||
-		::g_pThePlayerGO->currentState == eAnimationType::STRAFE_LEFT )
+	if( ::g_pThePlayerGO->currentState == eGOState::MOVING_LEFT ||
+		::g_pThePlayerGO->currentState == eGOState::STRAFING_LEFT )
 	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.right * ::g_pThePlayerGO->scale;
 
@@ -382,9 +419,16 @@ void move_player()
 		}
 
 	}
-	else if( ::g_pThePlayerGO->currentState == WALK_FORWARD )
+	else if( ::g_pThePlayerGO->currentState == eGOState::WALKING_FORWARD ||
+			 ::g_pThePlayerGO->currentState == eGOState::RUNNING ||
+			 ::g_pThePlayerGO->currentState == eGOState::JUMPING_SHORT ||
+			 ::g_pThePlayerGO->currentState == eGOState::JUMPING_LONG )
 	{	
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.forward * ::g_pThePlayerGO->scale;
+
+		if( ::g_pThePlayerGO->currentState == eGOState::RUNNING || 
+			::g_pThePlayerGO->currentState == eGOState::JUMPING_LONG )
+			maxSpeed *= 2.0f;
 
 		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;		
 
@@ -402,7 +446,7 @@ void move_player()
 			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
 		}
 	}
-	else if( ::g_pThePlayerGO->currentState == WALK_BACKWARD )
+	else if( ::g_pThePlayerGO->currentState == eGOState::WALKING_BACKWARD )
 	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.backward * ::g_pThePlayerGO->scale;
 
@@ -680,6 +724,7 @@ int main( void )
 	//	std::cout << error << std::endl;
 	//}
 
+	// LOAD THE ANIMATED MODELS AND ADD TO THE SCENE
 	LoadModelsIntoScene( sexyShaderID, ::g_pVAOManager );
 
 

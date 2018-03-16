@@ -57,7 +57,7 @@ cGameObject::cGameObject()
 
 	this->mySpeed = sGOSpeed( 0.0f, 0.0f, 0.0f, 0.0f );
 
-	this->currentState = NOTHING;
+	this->currentState = DOING_NOTHING;
 
 	return;
 }

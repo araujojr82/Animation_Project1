@@ -64,6 +64,7 @@ enum eAnimationType
 {
 	BASE = 0,
 	JUMP,
+	FORWARD_JUMP,
 	STRAFE_LEFT,
 	STRAFE_RIGHT,
 	MOVE_LEFT,
@@ -73,6 +74,23 @@ enum eAnimationType
 	WALK_BACKWARD,
 	ACTION,
 	NOTHING
+};
+
+enum eGOState
+{
+	DEFAULT = 0,
+	JUMPING_STATIC,
+	JUMPING_SHORT,
+	JUMPING_LONG,
+	STRAFING_LEFT,
+	STRAFING_RIGHT,
+	MOVING_LEFT,
+	MOVING_RIGHT,
+	RUNNING,
+	WALKING_FORWARD,
+	WALKING_BACKWARD,
+	DOING_ACTION,
+	DOING_NOTHING
 };
 
 struct sAnimDesc
@@ -123,7 +141,7 @@ public:
 	glm::vec3 position;
 	glm::vec3 prevPosition;
 
-	eAnimationType currentState;
+	eGOState currentState;
 
 	//sMovements* myMovements;
 	std::vector<sAnimDesc> myAnimations;
