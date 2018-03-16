@@ -74,12 +74,12 @@ enum eAnimationType
 	ACTION
 };
 
-struct animDesc
+struct sAnimDesc
 {
 	eAnimationType type;
 	std::string filePath;
 
-	animDesc( eAnimationType t, std::string path ) :
+	sAnimDesc( eAnimationType t, std::string path ) :
 		type( t ),
 		filePath( path ){}
 };
@@ -92,7 +92,8 @@ public:
 	glm::vec3 position;
 	glm::vec3 prevPosition;
 
-	std::vector<animDesc> myAnimations;
+	std::vector<sAnimDesc> myAnimations;
+	bool getAnimationPath( eAnimationType type, std::string &thePath );
 
 	glm::vec3 getPosition( void );
 

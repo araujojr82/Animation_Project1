@@ -16,7 +16,7 @@
 //bool LoadPlyFileIntoMesh( std::string filename, cMesh &theMesh );
 //bool LoadPlyFileIntoMeshWithNormals( std::string filename, cMesh &theMesh );
 
-void LoadModelsIntoScene( void );
+void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager );
 bool Load3DModelsIntoMeshManager( int shaderID,
 								  cVAOMeshManager* pVAOManager,
 								  cModelAssetLoader* pModelAssetLoader,

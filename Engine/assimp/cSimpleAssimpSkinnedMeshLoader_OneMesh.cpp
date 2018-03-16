@@ -576,6 +576,22 @@ float cSimpleAssimpSkinnedMesh::GetDuration(void)
 	return duration; 
 }
 
+float cSimpleAssimpSkinnedMesh::GetDuration( std::string animationFilePath )
+{
+	std::map< std::string, const aiScene* >::iterator itAnimation = this->mapAnimationNameTo_pScene.find( animationFilePath );
+	
+	// Found it? 
+	if( itAnimation == this->mapAnimationNameTo_pScene.end() )
+	{	// Nope.
+		return 0.0f;
+	}	
+
+	float duration = ( float )( itAnimation->second->mAnimations[0]->mDuration / 
+								itAnimation->second->mAnimations[0]->mTicksPerSecond );
+
+	return duration;
+}
+
 
 // Returns NULL (0) if there is no mesh at that index
 cMesh* cSimpleAssimpSkinnedMesh::CreateMeshObjectFromCurrentModel( unsigned int meshIndex /*=0*/)

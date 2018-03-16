@@ -462,14 +462,13 @@ int main( void )
 	GLint currentProgID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
 	GLint sexyShaderID = ::g_pShaderManager->getIDFromFriendlyName( "mySexyShader" );
 
-	if( !Load3DModelsIntoMeshManager( sexyShaderID, ::g_pVAOManager, ::g_pModelAssetLoader, error ) )
-	{
-		std::cout << "Not all models were loaded..." << std::endl;
-		std::cout << error << std::endl;
-	}
+	//if( !Load3DModelsIntoMeshManager( sexyShaderID, ::g_pVAOManager, ::g_pModelAssetLoader, error ) )
+	//{
+	//	std::cout << "Not all models were loaded..." << std::endl;
+	//	std::cout << error << std::endl;
+	//}
 
-	LoadModelsIntoScene();
-
+	LoadModelsIntoScene( sexyShaderID, ::g_pVAOManager );
 
 
 	// Named unifrom block

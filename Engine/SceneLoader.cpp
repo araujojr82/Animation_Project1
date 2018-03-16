@@ -13,7 +13,7 @@
 extern std::vector< cGameObject* >  g_vecGameObjects;
 extern cGameObject* g_pTheDebugSphere;
 
-cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::vector<animDesc> theAnimations )
+cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::vector<sAnimDesc> theAnimations )
 {
 	cSimpleAssimpSkinnedMesh* theSkinnedMesh = new cSimpleAssimpSkinnedMesh();
 
@@ -23,14 +23,14 @@ cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::vector<animDesc> theAnimations
 		{			
 			case eAnimationType::BASE :				
 				// Load the animation AND the mesh to be used for this model
-				if( !::g_pRPGSkinnedMesh->LoadMeshFromFile( theAnimations[i].filePath ) )
+				if( !theSkinnedMesh->LoadMeshFromFile( theAnimations[i].filePath ) )
 				{
 					std::cout << "Error: problem loading the skinned mesh" << std::endl;
 				}
 				break;
 			default:
 				// Load just the animation
-				if( !::g_pRPGSkinnedMesh->LoadMeshAnimation( theAnimations[i].filePath ) )
+				if( !theSkinnedMesh->LoadMeshAnimation( theAnimations[i].filePath ) )
 				{
 					std::cout << "Error: problem loading the skinned mesh" << std::endl;
 				}
@@ -41,29 +41,65 @@ cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::vector<animDesc> theAnimations
 	return theSkinnedMesh;
 }
 
-void LoadModelsIntoScene( void )
+bool createMeshFromSkinnedMesh( cSimpleAssimpSkinnedMesh* theSkinnedMesh, int shaderID, cVAOMeshManager* pVAOManager )
+{
+	cMesh* pTheMesh = theSkinnedMesh->CreateMeshObjectFromCurrentModel();
+
+	if( pTheMesh )
+	{
+		if( !pVAOManager->loadMeshIntoVAO( *pTheMesh, shaderID, false ) )
+		{
+			std::cout << "Could not load skinned mesh model into new VAO" << std::endl;
+			return false;
+		}
+	}
+	else
+	{
+		std::cout << "Could not create a cMesh object from skinned mesh file" << std::endl;
+		return false;
+	}
+	// Delete temporary mesh if still around
+	if( pTheMesh )
+	{
+		delete pTheMesh;
+	}
+	return true;
+}
+
+
+void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 {
 
 	{	// Skinned mesh  model
 		cGameObject* pTempGO = new cGameObject();
 		pTempGO->friendlyName = "Morty";
 
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::BASE, "assets/models/morty/Idle.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::JUMP, "assets/models/morty/Jumping.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::STRAFE_LEFT, "assets/models/morty/Walk Strafe Left.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::STRAFE_RIGHT, "assets/models/morty/Walk Strafe Right.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::MOVE_LEFT, "assets/models/morty/Crouched Sneaking Left.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::MOVE_RIGHT, "assets/models/morty/Crouched Sneaking Right.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::RUN, "assets/models/morty/Run Forward.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::WALK_FORWARD, "assets/models/morty/Walking.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::WALK_BACKWARD, "assets/models/morty/Walk Backwards.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::ACTION, "assets/models/morty/Shuffling.fbx" ) );
+		pTempGO->type = eTypeOfGO::CHARACTER;
+		pTempGO->team = eTeam::PLAYER;
+		pTempGO->enemyType = eEnemyType::FOLLOWER;
+		pTempGO->range = 4.0f;
+		pTempGO->maxVel = 0.05f;
+		pTempGO->health = 100.0f;
+
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/morty/Idle.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::JUMP, "assets/models/morty/Jumping.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_LEFT, "assets/models/morty/Walk Strafe Left.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_RIGHT, "assets/models/morty/Walk Strafe Right.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::MOVE_LEFT, "assets/models/morty/Crouched Sneaking Left.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::MOVE_RIGHT, "assets/models/morty/Crouched Sneaking Right.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::RUN, "assets/models/morty/Run Forward.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_FORWARD, "assets/models/morty/Walking.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_BACKWARD, "assets/models/morty/Walk Backwards.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::ACTION, "assets/models/morty/Shuffling.fbx" ) );
 
 		// This assigns the game object to the particular skinned mesh type 
 		pTempGO->pSimpleSkinnedMesh = createSkinnedMesh( pTempGO->myAnimations );
+
+		createMeshFromSkinnedMesh( pTempGO->pSimpleSkinnedMesh, shaderID, pVAOManager );
+
 		// Add a default animation 
 		pTempGO->pAniState = new cAnimationState();
-		pTempGO->pAniState->defaultAnimation.name = "assets/morty/Idle.fbx";
+		pTempGO->pAniState->defaultAnimation.name = "assets/models/morty/Idle.fbx";
 
 		pTempGO->pAniState->defaultAnimation.frameStepTime = 0.01f;
 		// Get the total time of the entire animation
@@ -74,16 +110,9 @@ void LoadModelsIntoScene( void )
 		meshInfo.scale = 0.05f;
 		meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 		meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-		meshInfo.name = ::g_pRPGSkinnedMesh2->friendlyName;
+		meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
 		meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "morty.bmp", 1.0f ) );
-		pTempGO->vecMeshes.push_back( meshInfo );
-		
-
-		
-		
-		
-		
-		
+		pTempGO->vecMeshes.push_back( meshInfo );		
 		::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
 	}
 
@@ -99,20 +128,22 @@ void LoadModelsIntoScene( void )
 		pTempGO->maxVel = 0.05f;
 		pTempGO->health = 100.0f;
 
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::BASE, "assets/models/rick/Idle.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::JUMP, "assets/models/rick/Jumping.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::STRAFE_LEFT, "assets/models/rick/Left Strafe Walk.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::STRAFE_RIGHT, "assets/models/rick/Right Strafe Walk.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::MOVE_LEFT, "assets/models/rick/Crouched Sneaking Left.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::MOVE_RIGHT, "assets/models/rick/Crouched Sneaking Right.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::RUN, "assets/models/rick/Running.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::WALK_FORWARD, "assets/models/rick/Walking.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::WALK_BACKWARD, "assets/models/rick/Walking Backward.fbx" ) );
-		pTempGO->myAnimations.push_back( animDesc( eAnimationType::ACTION, "assets/models/rick/Gangnam Style.fbx" ) );
-
-
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/rick/Idle.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::JUMP, "assets/models/rick/Jumping.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_LEFT, "assets/models/rick/Left Strafe Walk.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_RIGHT, "assets/models/rick/Right Strafe Walk.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::MOVE_LEFT, "assets/models/rick/Crouched Sneaking Left.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::MOVE_RIGHT, "assets/models/rick/Crouched Sneaking Right.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::RUN, "assets/models/rick/Running.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_FORWARD, "assets/models/rick/Walking.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_BACKWARD, "assets/models/rick/Walking Backward.fbx" ) );
+		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::ACTION, "assets/models/rick/Gangnam Style.fbx" ) );
+		
 		// This assigns the game object to the particular skinned mesh type 
-		pTempGO->pSimpleSkinnedMesh = ::g_pRPGSkinnedMesh;
+		pTempGO->pSimpleSkinnedMesh = createSkinnedMesh( pTempGO->myAnimations );
+
+		createMeshFromSkinnedMesh( pTempGO->pSimpleSkinnedMesh, shaderID, pVAOManager );
+
 		// Add a default animation 
 		pTempGO->pAniState = new cAnimationState();
 		//pTempGO->pAniState->defaultAnimation.name = "assets/rick/rick_anim_walk.fbx";
@@ -130,7 +161,7 @@ void LoadModelsIntoScene( void )
 		meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 		meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
 		//meshInfo.bDrawAsWireFrame = true;
-		meshInfo.name = ::g_pRPGSkinnedMesh->friendlyName;
+		meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
 		meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "rick_texture.bmp", 1.0f ) );
 		pTempGO->vecMeshes.push_back( meshInfo );
 

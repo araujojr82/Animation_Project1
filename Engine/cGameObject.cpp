@@ -63,6 +63,20 @@ cGameObject::~cGameObject()
 	return;
 }
 
+bool cGameObject::getAnimationPath( eAnimationType type, std::string &thePath )
+{
+	for( int i = 0; i != this->myAnimations.size(); i++ )
+	{
+		if( this->myAnimations[i].type == type )
+		{
+			thePath = this->myAnimations[i].filePath;
+			return true;
+		}			
+	}
+
+	return false;
+}
+
 glm::vec3 cGameObject::getPosition( void )
 {
 	return this->position;

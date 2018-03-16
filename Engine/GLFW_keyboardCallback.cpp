@@ -1,6 +1,8 @@
 #include "globalOpenGL_GLFW.h"
 #include "globalGameStuff.h"
 
+#include "assimp\cSimpleAssimpSkinnedMeshLoader_OneMesh.h"
+
 #include <iostream>
 
 #include "cAnimationState.h"
@@ -19,71 +21,64 @@ bool MOVEMENT_CHANGE = false;
 
 glm::vec3 movement = glm::vec3( 0.0f );
 
+void changePlayerGO()
+{
+	for( int i = 0; i != ::g_vecGameObjects.size(); i++ )
+	{
+		if( ::g_vecGameObjects[i]->type == eTypeOfGO::CHARACTER &&
+			::g_vecGameObjects[i]->team == eTeam::PLAYER &&
+			::g_vecGameObjects[i] != ::g_pThePlayerGO )
+		{ // Found another player GO!
+			::g_pThePlayerGO->enemyType = eEnemyType::FOLLOWER;
+
+			::g_pThePlayerGO = ::g_vecGameObjects[i];
+			::g_pThePlayerGO->enemyType = eEnemyType::UNAVAIABLE;
+			return;
+		}
+
+	}
+	return;
+}
+
+
+bool createState( cGameObject* pTheGO, eAnimationType type, cAnimationState::sStateDetails &theState )
+{
+	std::string theAnimPath;
+	if( !pTheGO->getAnimationPath( type, theAnimPath ) )
+	{
+		return false;
+	}
+	else
+
+	theState.name = theAnimPath;
+	theState.totalTime = pTheGO->pSimpleSkinnedMesh->GetDuration( theAnimPath );
+	theState.frameStepTime = 0.01f;
+
+	return true;
+}
+
 /*static*/ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
-
-	// TEMP ANIMATIONS------------------------------
-	cAnimationState::sStateDetails walkForward;
-	walkForward.name = "assets/models/rick/Walking.fbx";
-	walkForward.totalTime = 0.8f;
-	walkForward.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails walkBackward;
-	walkBackward.name = "assets/models/rick/Walking Backward.fbx";
-	walkBackward.totalTime = 0.8f;
-	walkBackward.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails leftAnimation;
-	leftAnimation.name = "assets/models/rick/Left Strafe Walk.fbx";
-	leftAnimation.totalTime = 0.8f;
-	leftAnimation.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails rightAnimation;
-	rightAnimation.name = "assets/models/rick/Right Strafe Walk.fbx";
-	rightAnimation.totalTime = 0.8f;
-	rightAnimation.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails jumpAnimation;
-	jumpAnimation.name = "assets/models/rick/Jumping.fbx";
-	jumpAnimation.totalTime = 1.1f;
-	jumpAnimation.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails idleAnimation2;
-	idleAnimation2.name = "assets/models/rick/Breathing Idle.fbx";
-	idleAnimation2.totalTime = 1.1f;
-	idleAnimation2.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails leftAnimation2;
-	leftAnimation2.name = "assets/models/rick/Crouched Sneaking Left.fbx";
-	leftAnimation2.totalTime = 0.8f;
-	leftAnimation2.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails rightAnimation2;
-	rightAnimation2.name = "assets/models/rick/Crouched Sneaking Right.fbx";
-	rightAnimation2.totalTime = 0.8f;
-	rightAnimation2.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails actionAnimation;
-	actionAnimation.name = "assets/models/rick/Gangnam Style.fbx";
-	actionAnimation.totalTime = 1.1f;
-	actionAnimation.frameStepTime = 0.005f;
-
-	cAnimationState::sStateDetails runningAnimation;
-	runningAnimation.name = "assets/models/rick/Running.fbx";
-	runningAnimation.totalTime = 1.1f;
-	runningAnimation.frameStepTime = 0.005f;
-	// ----------------------------------------------
-
 	MOVEMENT_CHANGE = false;
 
 	if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GLFW_TRUE );
 
+	if( key == GLFW_KEY_TAB && action == GLFW_PRESS )
+	{
+		changePlayerGO();
+	}
+
 	if( key == GLFW_KEY_SPACE && action == GLFW_PRESS )
 	{
 		//		::g_GameObjects[1]->position.y += 0.01f;
 		//::g_vecGameObjects[1]->position.y += 0.01f;
-		::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( jumpAnimation );
+		cAnimationState::sStateDetails newState;
+		if( createState( ::g_pThePlayerGO, eAnimationType::JUMP, newState ) )
+		{
+			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+		}
+		
 	}
 	
 	if( key == GLFW_KEY_ENTER && action == GLFW_PRESS )
@@ -136,8 +131,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 	case GLFW_KEY_A:		// Left
 		if( isShiftKeyDown( mods, true ) )
 		{
-			//::g_pLightManager->vecLights[0].position.x -= CAMERASPEED;
-			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( leftAnimation2 );
+			cAnimationState::sStateDetails newState;
+			if( createState( ::g_pThePlayerGO, eAnimationType::MOVE_LEFT, newState ) )
+			{
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+			}
 		}
 		else
 		{
@@ -146,7 +144,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			}
 			else
 			{	// Turn Left
-				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( leftAnimation );
+				cAnimationState::sStateDetails newState;
+				if( createState( ::g_pThePlayerGO, eAnimationType::STRAFE_LEFT, newState ) )
+				{
+					::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+				}
 				//if( action == GLFW_PRESS )
 				//{
 				//	MOVEMENT_CHANGE = true;
@@ -166,8 +168,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( rightAnimation2 );
-			//::g_pLightManager->vecLights[0].position.x += CAMERASPEED;
+			cAnimationState::sStateDetails newState;
+			if( createState( ::g_pThePlayerGO, eAnimationType::MOVE_RIGHT, newState ) )
+			{
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+			}			
 		}
 		else
 		{
@@ -178,8 +183,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			}
 			else
 			{	// Turn right 
-				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( rightAnimation );
-
+				cAnimationState::sStateDetails newState;
+				if( createState( ::g_pThePlayerGO, eAnimationType::STRAFE_RIGHT, newState ) )
+				{
+					::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+				}
 				//if( action == GLFW_PRESS )
 				//{
 				//	MOVEMENT_CHANGE = true;
@@ -198,7 +206,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 		if( isShiftKeyDown( mods, true ) )
 		{
 			//::g_pLightManager->vecLights[0].position.z += CAMERASPEED;
-			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( runningAnimation );
+			cAnimationState::sStateDetails newState;
+			if( createState( ::g_pThePlayerGO, eAnimationType::RUN, newState ) )
+			{
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+			}
 
 		}
 		else
@@ -209,7 +221,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			}
 			else
 			{
-				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( walkForward );
+				cAnimationState::sStateDetails newState;
+				if( createState( ::g_pThePlayerGO, eAnimationType::WALK_FORWARD, newState ) )
+				{
+					::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+				}
 				//if( action == GLFW_PRESS )
 				//{
 				//	MOVEMENT_CHANGE = true;
@@ -237,7 +253,11 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			}
 			else
 			{	
-				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( walkBackward );
+				cAnimationState::sStateDetails newState;
+				if( createState( ::g_pThePlayerGO, eAnimationType::WALK_BACKWARD, newState ) )
+				{
+					::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+				}
 				//if( action == GLFW_PRESS )
 				//{
 				//	MOVEMENT_CHANGE = true;
@@ -268,7 +288,6 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			else
 			{	// "roll" left (counter-clockwise)
 				//::g_pSteeringManager->ANGLE_CHANGE *= 0.95f;
-				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( idleAnimation2 );
 			}
 		}
 		break;
@@ -287,9 +306,13 @@ glm::vec3 movement = glm::vec3( 0.0f );
 				
 			}
 			else
-			{	// "roll" left (counter-clockwise)
+			{	
 				//::g_pSteeringManager->ANGLE_CHANGE *= 1.05f;
-				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( actionAnimation );
+				cAnimationState::sStateDetails newState;
+				if( createState( ::g_pThePlayerGO, eAnimationType::ACTION, newState ) )
+				{
+					::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
+				}
 			}
 		}
 		break;
