@@ -11,7 +11,7 @@ bool isShiftKeyDown( int mods, bool bByItself = true );
 bool isCtrlKeyDown( int mods, bool bByItself = true );
 bool isAltKeyDown( int mods, bool bByItself = true );
 
-glm::vec3 movement = glm::vec3( 0.0f );
+extern void setState( eAnimationType nextAnimation );
 
 void changePlayerGO()
 {
@@ -32,10 +32,8 @@ void changePlayerGO()
 	return;
 }
 
-
 /*static*/ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
-	::g_pThePlayerGO->myMovements.bChangedMovement = false;
 
 	if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GLFW_TRUE );
@@ -44,94 +42,41 @@ void changePlayerGO()
 	{
 		changePlayerGO();
 	}
-
-	if( key == GLFW_KEY_SPACE )
-	{
-		//		::g_GameObjects[1]->position.y += 0.01f;
-		//::g_vecGameObjects[1]->position.y += 0.01f;
-		//cAnimationState::sStateDetails newState;
-		//if( createState( ::g_pThePlayerGO, eAnimationType::JUMP, newState ) )
-		//{
-		//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-		//}
-		if( action == GLFW_PRESS )
-		{
-			::g_pThePlayerGO->myMovements.bChangedMovement = true;
-			::g_pThePlayerGO->myMovements.bIsJumping = true;
-		}
-			
-		if( action == GLFW_RELEASE )
-		{
-			::g_pThePlayerGO->myMovements.bChangedMovement = true;
-			::g_pThePlayerGO->myMovements.bIsJumping = false;
-		}			
-	}
 	
 	if( key == GLFW_KEY_ENTER && action == GLFW_PRESS )
 	{
 		::g_bIsWireframe = !::g_bIsWireframe;
 	}
 	
-	const float CAMERASPEED = 0.1f;
-
 	switch( key )
 	{
 	case GLFW_KEY_A:		// Left
 		if( isShiftKeyDown( mods, true ) )
 		{
-			//cAnimationState::sStateDetails newState;
-			//if( createState( ::g_pThePlayerGO, eAnimationType::MOVE_LEFT, newState ) )
-			//{
-			//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-			//}
 			if( action == GLFW_PRESS )
 			{
-				::g_pThePlayerGO->myMovements.bChangedMovement = true;
-				::g_pThePlayerGO->myMovements.bIsMovingLeft = true;
-			}			
+				setState( eAnimationType::MOVE_LEFT );
+			}
 			if( action == GLFW_RELEASE )
 			{
-				::g_pThePlayerGO->myMovements.bChangedMovement = true;
-				::g_pThePlayerGO->myMovements.bIsMovingLeft = false;
+				setState( eAnimationType::NOTHING );
 			}
-				
 		}
 		else
 		{
 			if( isAltKeyDown( mods, true ) )
-			{	
+			{
 			}
 			else
-			{	// Turn Left
-				//cAnimationState::sStateDetails newState;
-				//if( createState( ::g_pThePlayerGO, eAnimationType::STRAFE_LEFT, newState ) )
-				//{
-				//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-				//}
+			{
 				if( action == GLFW_PRESS )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsStrafing = true;
-					::g_pThePlayerGO->myMovements.bIsMovingLeft = true;
+					setState( eAnimationType::STRAFE_LEFT );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsStrafing = false;
-					::g_pThePlayerGO->myMovements.bIsMovingLeft = false;
+					setState( eAnimationType::NOTHING );
 				}
-				//if( action == GLFW_PRESS )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	TURNING_LEFT = true;
-				//}
-				//else if( action == GLFW_RELEASE )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	TURNING_LEFT = false;
-				//}
-				//::g_pSteeringManager->CIRCLE_RADIUS *= 0.95f;
-				
 			}
 		}
 		break;
@@ -139,82 +84,44 @@ void changePlayerGO()
 
 		if( isShiftKeyDown( mods, true ) )
 		{
-			//cAnimationState::sStateDetails newState;
-			//if( createState( ::g_pThePlayerGO, eAnimationType::MOVE_RIGHT, newState ) )
-			//{
-			//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-			//}
 			if( action == GLFW_PRESS )
 			{
-				::g_pThePlayerGO->myMovements.bChangedMovement = true;
-				::g_pThePlayerGO->myMovements.bIsMovingRight = true;
+				setState( eAnimationType::MOVE_RIGHT );
 			}
 			if( action == GLFW_RELEASE )
 			{
-				::g_pThePlayerGO->myMovements.bChangedMovement = true;
-				::g_pThePlayerGO->myMovements.bIsMovingRight = false;
+				setState( eAnimationType::NOTHING );
 			}
 		}
 		else
 		{
 			if( isAltKeyDown( mods, true ) )
-			{	// F=ma, so changing the accel REALLY is like putting a force
-				//	on an object
-			
+			{				
 			}
 			else
-			{	// Turn right 
-				//cAnimationState::sStateDetails newState;
-				//if( createState( ::g_pThePlayerGO, eAnimationType::STRAFE_RIGHT, newState ) )
-				//{
-				//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-				//}
+			{	
 				if( action == GLFW_PRESS )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsStrafing = true;
-					::g_pThePlayerGO->myMovements.bIsMovingRight = true;
+					setState( eAnimationType::STRAFE_RIGHT );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsStrafing = false;
-					::g_pThePlayerGO->myMovements.bIsMovingRight = false;
+					setState( eAnimationType::NOTHING );
 				}
-				//if( action == GLFW_PRESS )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	TURNING_RIGHT = true;
-				//}
-				//else if( action == GLFW_RELEASE )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	TURNING_RIGHT = false;
-				//}
-				//::g_pSteeringManager->CIRCLE_RADIUS *= 1.05f;
 			}
 		}
 		break;
 	case GLFW_KEY_W:		// Forward
 		if( isShiftKeyDown( mods, true ) )
 		{
-			////::g_pLightManager->vecLights[0].position.z += CAMERASPEED;
-			//cAnimationState::sStateDetails newState;
-			//if( createState( ::g_pThePlayerGO, eAnimationType::RUN, newState ) )
-			//{
-			//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-			//}
 			if( action == GLFW_PRESS )
 			{
-				::g_pThePlayerGO->myMovements.bChangedMovement = true;
-				::g_pThePlayerGO->myMovements.bIsRunning = true;
+				setState( eAnimationType::RUN );
 			}
 			if( action == GLFW_RELEASE )
 			{
-				::g_pThePlayerGO->myMovements.bChangedMovement = true;
-				::g_pThePlayerGO->myMovements.bIsRunning = false;
+				setState( eAnimationType::NOTHING );
 			}
-
 		}
 		else
 		{
@@ -224,39 +131,20 @@ void changePlayerGO()
 			}
 			else
 			{
-				//cAnimationState::sStateDetails newState;
-				//if( createState( ::g_pThePlayerGO, eAnimationType::WALK_FORWARD, newState ) )
-				//{
-				//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-				//}
 				if( action == GLFW_PRESS )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsMovingForward = true;
+					setState( eAnimationType::WALK_FORWARD );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsMovingForward = false;
+					setState( eAnimationType::NOTHING );
 				}
-				//if( action == GLFW_PRESS )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	MOVING_FORWARD = true;
-				//}
-				//else if( action == GLFW_RELEASE )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	MOVING_FORWARD = false;
-				//}
-				//::g_pSteeringManager->CIRCLE_DISTANCE *= 1.05f;
 			}
 		}
 		break;
 	case GLFW_KEY_S:		// Backwards
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pLightManager->vecLights[0].position.z -= CAMERASPEED;
 		}
 		else
 		{
@@ -266,88 +154,64 @@ void changePlayerGO()
 			}
 			else
 			{	
-				//cAnimationState::sStateDetails newState;
-				//if( createState( ::g_pThePlayerGO, eAnimationType::WALK_BACKWARD, newState ) )
-				//{
-				//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-				//}
 				if( action == GLFW_PRESS )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsMovingBackward = true;
+					setState( eAnimationType::WALK_BACKWARD );
 				}
 				if( action == GLFW_RELEASE )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsMovingBackward = false;
-				}
-				//if( action == GLFW_PRESS )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	MOVING_BACKWARD = true;
-				//}
-				//else if( action == GLFW_RELEASE )
-				//{
-				//	MOVEMENT_CHANGE = true;
-				//	MOVING_BACKWARD = false;
-				//}
-				//::g_pSteeringManager->CIRCLE_DISTANCE *= 0.95f;
+					setState( eAnimationType::NOTHING );
+				}				
 			}
 		}
 		break;
 	case GLFW_KEY_Q:		// "Down" (along y axis)
 		if( isShiftKeyDown( mods, true ) )
 		{
-			//::g_pLightManager->vecLights[0].position.y -= CAMERASPEED;
 		}
 		else
 		{
-			//::g_cameraXYZ.y -= CAMERASPEED;	
 			if( isCtrlKeyDown( mods, true ) )
 			{
-				// Move camera (ctrl)
 				
 			}
 			else
-			{	// "roll" left (counter-clockwise)
-				//::g_pSteeringManager->ANGLE_CHANGE *= 0.95f;
+			{	
 			}
 		}
 		break;
 	case GLFW_KEY_E:		// "Up" (along y axis)
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pLightManager->vecLights[0].position.y += CAMERASPEED;
-
 		}
 		else
 		{
-			//::g_cameraXYZ.y += CAMERASPEED;	
 			if( isCtrlKeyDown( mods, true ) )
-			{
-				// Move camera (ctrl)
-				
+			{				
 			}
 			else
 			{	
-				////::g_pSteeringManager->ANGLE_CHANGE *= 1.05f;
-				//cAnimationState::sStateDetails newState;
-				//if( createState( ::g_pThePlayerGO, eAnimationType::ACTION, newState ) )
-				//{
-				//	::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( newState );
-				//}
 				if( action == GLFW_PRESS )
 				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsDoingAction = true;
+					setState( eAnimationType::ACTION );
 				}
-				if( action == GLFW_RELEASE )
-				{
-					::g_pThePlayerGO->myMovements.bChangedMovement = true;
-					::g_pThePlayerGO->myMovements.bIsDoingAction = false;
-				}
+				//if( action == GLFW_RELEASE )
+				//{
+				//	setState( eAnimationType::NOTHING );
+				//}
 			}
 		}
+		break;
+
+	case GLFW_KEY_SPACE:
+		if( action == GLFW_PRESS )
+		{
+			setState( eAnimationType::JUMP );
+		}
+		//if( action == GLFW_RELEASE )
+		//{
+		//	setState( eAnimationType::NOTHING );
+		//}
 		break;
 
 	case GLFW_KEY_UP:

@@ -78,8 +78,10 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		pTempGO->team = eTeam::PLAYER;
 		pTempGO->behaviour = eBehaviour::FOLLOWER;
 		pTempGO->range = 4.0f;
-		pTempGO->maxVel = 0.05f;
+		pTempGO->maxVel = 1.0f;
 		pTempGO->health = 100.0f;
+		pTempGO->scale = 0.05f;
+		pTempGO->mySpeed = sGOSpeed( 1.0f, 0.4f, 0.5f, 0.5f );
 
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/morty/Idle.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::JUMP, "assets/models/morty/Jumping.fbx" ) );
@@ -107,7 +109,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 
 		pTempGO->position = glm::vec3( -2.0f, 0.0, 0.0f );
 		sMeshDrawInfo meshInfo;
-		meshInfo.scale = 0.05f;
+		meshInfo.scale = pTempGO->scale;
 		meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 		meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
 		meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
@@ -125,8 +127,12 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		pTempGO->team = eTeam::PLAYER;
 		pTempGO->behaviour = eBehaviour::UNAVAIABLE;
 		pTempGO->range = 4.0f;
-		pTempGO->maxVel = 0.05f;
 		pTempGO->health = 100.0f;
+		pTempGO->maxVel = 1.0f;
+		pTempGO->health = 100.0f;
+		pTempGO->scale = 0.02f;
+		pTempGO->mySpeed = sGOSpeed( 1.0f, 0.8f, 1.0f, 1.0f );
+
 
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/rick/Idle.fbx" ) );
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::JUMP, "assets/models/rick/Jumping.fbx" ) );
@@ -157,7 +163,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		//physState.position = glm::vec3( +20.0f, 0.0, 0.0f );
 		//pTempGO->SetPhysState( physState );
 		sMeshDrawInfo meshInfo;
-		meshInfo.scale = 0.05f;
+		meshInfo.scale = pTempGO->scale;
 		meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 		meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
 		//meshInfo.bDrawAsWireFrame = true;

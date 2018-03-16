@@ -689,16 +689,23 @@ void CalculateSkinnedMeshBonesAndLoad( sMeshDrawInfo &theMesh, cGameObject* pThe
 	std::string animationToPlay = "";
 	float curFrameTime = 0.0;
 
-
 	// See what animation should be playing... 
 	cAnimationState* pAniState = pTheGO->pAniState;
 
-	if( pAniState->currentAnimation.name != "none" )
+	if( pAniState->currentAnimation.name != "" &&
+		pAniState->currentAnimation.name != "none" &&
+		!pAniState->currentAnimation.isFinished )
 	{
 		pAniState->currentAnimation.IncrementTime();
 
 		animationToPlay = pAniState->currentAnimation.name;
 		curFrameTime = pAniState->currentAnimation.currentTime;
+
+		if( pTheGO->behaviour == eBehaviour::UNAVAIABLE ) // HACK
+		{
+			std::cout << pAniState->currentAnimation.name << ": " <<
+				pAniState->currentAnimation.currentTime << std::endl;
+		}
 	}
 	//// Are there any animations in the queue of animations
 	//if( !pAniState->vecAnimationQueue.empty() )
@@ -724,12 +731,15 @@ void CalculateSkinnedMeshBonesAndLoad( sMeshDrawInfo &theMesh, cGameObject* pThe
 		animationToPlay = pAniState->defaultAnimation.name;
 		curFrameTime = pAniState->defaultAnimation.currentTime;
 
+		if( pTheGO->behaviour == eBehaviour::UNAVAIABLE ) // HACK
+		{
+			std::cout << pAniState->defaultAnimation.name << ": " <<
+				pAniState->defaultAnimation.currentTime << std::endl;
+		}
+
 	}//if ( pAniState->vecAnimationQueue.empty()
 
-	if( pTheGO->friendlyName == "player" )
-	{
-		std::cout << pAniState->defaultAnimation.currentTime << std::endl;
-	}
+
 
 	// Set up the animation pose:
 	std::vector< glm::mat4x4 > vecFinalTransformation;

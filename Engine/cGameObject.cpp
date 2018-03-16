@@ -55,7 +55,9 @@ cGameObject::cGameObject()
 	this->maxVel = NULL;
 	this->wanderAngle = 0.0f;
 
-	this->myMovements = sMovements();
+	this->mySpeed = sGOSpeed( 0.0f, 0.0f, 0.0f, 0.0f );
+
+	this->currentState = NOTHING;
 
 	return;
 }

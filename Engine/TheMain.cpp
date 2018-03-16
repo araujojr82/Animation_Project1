@@ -89,7 +89,7 @@ cDebugRenderer*			g_pDebugRenderer = 0;
 bool g_IsWindowFullScreen = false;
 GLFWwindow* g_pGLFWWindow = NULL;
 
-bool g_bUseDeferred = true; // Switch between 1 pass or 2 passes...
+bool g_bUseDeferred = false; // Switch between 1 pass or 2 passes...
 
 // This contains the AABB grid for the terrain...
 //cAABBBroadPhase* g_terrainAABBBroadPhase = 0;
@@ -173,32 +173,163 @@ bool createState( cGameObject* pTheGO, eAnimationType type, cAnimationState::sSt
 
 	theState.name = theAnimPath;
 	theState.totalTime = pTheGO->pSimpleSkinnedMesh->GetDuration( theAnimPath );
-	theState.frameStepTime = 0.01f;
+	theState.frameStepTime = 0.02f;
 
 	return true;
 }
 
 
-void updateCurrentAnimation( eAnimationType type )
+void updateCurrentAnimation( eAnimationType type, bool loopAnim = true )
 {
-	cAnimationState* pAniState = ::g_pThePlayerGO->pAniState;
+	cAnimationState* pTheAniState = ::g_pThePlayerGO->pAniState;
 
-	if( pAniState->currentAnimationType != type )
+	if( pTheAniState->currentAnimationType != type )
 	{
+		if( type != NOTHING )
+		{
+			int Mybreak = 1;
+		}
+
 		cAnimationState::sStateDetails newState;
 		if( !createState( ::g_pThePlayerGO, type, newState ) )
 		{
 			newState.name = "none";
 		}
-		::g_pThePlayerGO->pAniState->currentAnimation = newState;
+		newState.runInLoop = loopAnim;
+		if( type == NOTHING ) 			
+		{
+			if( pTheAniState->currentAnimationType == JUMP )
+			{
+				if( pTheAniState->currentAnimation.isFinished )
+				{
+					pTheAniState->currentAnimation = newState;
+					pTheAniState->currentAnimationType = type;
+				}
+			}	
+			else
+			{
+				pTheAniState->currentAnimation = newState;
+				pTheAniState->currentAnimationType = type;
+			}
+		}
+		else
+		{
+			pTheAniState->currentAnimation = newState;
+			pTheAniState->currentAnimationType = type;
+		}
 	}
 
 	return;
 }
 
-void move_player( double deltaTime )
+void setState( eAnimationType nextAnimation )
 {
-	sMovements theMovements = ::g_pThePlayerGO->myMovements;
+	bool isFinished = ::g_pThePlayerGO->pAniState->currentAnimation.isFinished;
+
+	if( nextAnimation != ::g_pThePlayerGO->currentState )
+	{
+		switch( ::g_pThePlayerGO->currentState )
+		{
+			case BASE:	// IDLE
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case JUMP:
+				if( isFinished )
+					::g_pThePlayerGO->currentState = nextAnimation;
+				// TODO: ALLOW ROTATION
+				break;
+			case STRAFE_LEFT:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case STRAFE_RIGHT:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case MOVE_LEFT:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case MOVE_RIGHT:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case RUN:
+				//if( nextAnimation == WALK_FORWARD ||
+				//	nextAnimation == JUMP ||
+				//	nextAnimation == NOTHING )
+					::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case WALK_FORWARD:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case WALK_BACKWARD:
+				//if( nextAnimation != JUMP )	// CAN'T JUMP BACK!
+					::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case ACTION:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			case NOTHING:
+				::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+			default:
+				//::g_pThePlayerGO->currentState = nextAnimation;
+				break;
+		}
+
+	}
+	return;
+}
+
+void move_player()
+{	
+	switch( ::g_pThePlayerGO->currentState )
+	{
+		case BASE:
+			std::cout << "Base ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case JUMP:
+			std::cout << "Jump ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState, false );
+			break;
+		case STRAFE_LEFT:
+			std::cout << "StrafeL ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case STRAFE_RIGHT:
+			std::cout << "StrafeR ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case MOVE_LEFT:
+			std::cout << "MoveL ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case MOVE_RIGHT:
+			std::cout << "MoveR ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case RUN:
+			std::cout << "Run ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case WALK_FORWARD:
+			std::cout << "WalkF ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case WALK_BACKWARD:
+			std::cout << "WalkB ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		case ACTION:
+			std::cout << "Action ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState, false );
+			break;
+		case NOTHING:
+			std::cout << "None ";
+			updateCurrentAnimation( ::g_pThePlayerGO->currentState );
+			break;
+		default:
+			break;
+	}
+
 
 	float totalVelocity = 0.0f;
 	glm::vec3 movement = glm::vec3( 0.0f );
@@ -207,43 +338,11 @@ void move_player( double deltaTime )
 	if( isnan( ::g_pThePlayerGO->vel.y ) ) ::g_pThePlayerGO->vel.y = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.z ) ) ::g_pThePlayerGO->vel.z = 0.0f;
 	
-	if( theMovements.bChangedMovement )
-	{
-		if( theMovements.bIsMovingForward )
-			updateCurrentAnimation( WALK_FORWARD );
-		else if( theMovements.bIsMovingBackward )
-			updateCurrentAnimation( WALK_BACKWARD );
-		else if( theMovements.bIsMovingLeft )
-		{
-			if( theMovements.bIsStrafing )
-				updateCurrentAnimation( STRAFE_LEFT );
-			else
-				updateCurrentAnimation( MOVE_LEFT );
-		}
-		else if( theMovements.bIsMovingRight )
-		{
-			if( theMovements.bIsStrafing )
-				updateCurrentAnimation( STRAFE_RIGHT );
-			else
-				updateCurrentAnimation( MOVE_RIGHT );
-		}			
-		else if( theMovements.bIsRunning )
-			updateCurrentAnimation( RUN );
-		else if( theMovements.bIsJumping )
-			updateCurrentAnimation(JUMP);
-		else if( theMovements.bIsDoingAction )
-			updateCurrentAnimation( ACTION );
-		//else if( theMovements.bIsTurningLeft )
-		//	updateCurrentAnimation();
-		//else if( theMovements.bIsTurningRight )
-		//	updateCurrentAnimation();
-		else
-			updateCurrentAnimation( NOTHING );
-	}
 	
-	if( theMovements.bIsMovingForward )
+	if( ::g_pThePlayerGO->currentState == WALK_FORWARD )
 	{	
-		updateCurrentAnimation( eAnimationType::WALK_FORWARD );
+		float maxSpeed = ::g_pThePlayerGO->mySpeed.forward * ::g_pThePlayerGO->scale;
+
 		movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
 		movement *= 0.01f;
 		::g_pThePlayerGO->vel += movement;
@@ -255,13 +354,15 @@ void move_player( double deltaTime )
 		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
 			abs( ::g_pThePlayerGO->vel.y ) +
 			abs( ::g_pThePlayerGO->vel.z );
-		if( totalVelocity > ::g_pThePlayerGO->maxVel )
+		if( totalVelocity > maxSpeed )
 		{
-			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * ::g_pThePlayerGO->maxVel;			
+			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
 		}
 	}
-	else if( theMovements.bIsMovingBackward )
+	else if( ::g_pThePlayerGO->currentState == WALK_BACKWARD )
 	{
+		float maxSpeed = ::g_pThePlayerGO->mySpeed.backward * ::g_pThePlayerGO->scale;
+
 		movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
 		movement *= 0.01f;
 		::g_pThePlayerGO->vel -= movement;
@@ -273,14 +374,14 @@ void move_player( double deltaTime )
 		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
 			abs( ::g_pThePlayerGO->vel.y ) +
 			abs( ::g_pThePlayerGO->vel.z );
-		if( totalVelocity > ::g_pThePlayerGO->maxVel )
+		if( totalVelocity > maxSpeed )
 		{
-			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * ::g_pThePlayerGO->maxVel;
+			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
 		}
 	}
 	else
 	{
-		movement = ::g_pThePlayerGO->vel * 0.1f;
+		movement = ::g_pThePlayerGO->vel * 0.5f;
 		::g_pThePlayerGO->vel -= movement;
 
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
@@ -289,10 +390,10 @@ void move_player( double deltaTime )
 	}
 	::g_pThePlayerGO->position += ::g_pThePlayerGO->vel;
 
-	if( theMovements.bIsTurningLeft )
-		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.05f, 0.0f ) );
-	if( theMovements.bIsTurningRight )
-		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.05f, 0.0f ) );
+	//if( ::g_pThePlayerGO->currentState == TURN_RIGHT )
+	//	::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.05f, 0.0f ) );
+	//if( ::g_pThePlayerGO->currentState == TURN_LEFT )
+	//	::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.05f, 0.0f ) );
 
 	return;
 }
@@ -719,16 +820,12 @@ int main( void )
 		double deltaTime = curTime - lastTimeStep;
 		lastTimeStep = curTime;		
 
-		//float ratio;
-		//int width, height;
-		//glm::mat4x4 matProjection;			// was "p"
+		move_player();
 
-		//glfwGetFramebufferSize( window, &width, &height );
-		//ratio = width / ( float )height;
-		//glViewport( 0, 0, width, height );
+		::g_pSteeringManager->updateAll( deltaTime );
 
-		//// Clear colour AND depth buffer
-		//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		// Check for collisions with the player and update it's health
+		collisionCheck();
 
 		::g_pShaderManager->useShaderProgram( "mySexyShader" );
 		
@@ -800,12 +897,12 @@ int main( void )
 			RenderScene( vecCopy2ndPass, ::g_pGLFWWindow, deltaTime );
 		}
 
-		move_player( deltaTime );
+		//move_player( deltaTime );
 
-		::g_pSteeringManager->updateAll( deltaTime );
+		//::g_pSteeringManager->updateAll( deltaTime );
 
-		// Check for collisions with the player and update it's health
-		collisionCheck();
+		//// Check for collisions with the player and update it's health
+		//collisionCheck();
 
 		// Update camera
 		//ProcessCameraInput( window, deltaTime );

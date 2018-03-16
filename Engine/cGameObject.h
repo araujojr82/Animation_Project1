@@ -85,32 +85,34 @@ struct sAnimDesc
 		filePath( path ){}
 };
 
-struct sMovements
+struct sGOSpeed
 {
-	bool bIsMovingForward;
-	bool bIsMovingBackward;
-	bool bIsMovingLeft;
-	bool bIsMovingRight;
-	bool bIsRunning;
-	bool bIsStrafing;
-	bool bIsTurningLeft;
-	bool bIsTurningRight;
-	bool bIsJumping;
-	bool bChangedMovement;
-	bool bIsDoingAction;
+	float forward;
+	float backward;
+	float left;
+	float right;
 
-	sMovements() :
-		bIsMovingForward( false ),
-		bIsMovingBackward( false ),
-		bIsMovingLeft( false ),
-		bIsMovingRight( false ),
-		bIsRunning( false ),
-		bIsStrafing( false ),
-		bIsTurningLeft( false ),
-		bIsTurningRight( false ),
-		bIsJumping( false ),
-		bChangedMovement( false ),
-		bIsDoingAction( false ) {}
+	sGOSpeed( float f, float b, float l, float r ) :
+		forward( f ),
+		backward( b ),
+		left( l ),
+		right( r )
+	{
+	}
+
+	sGOSpeed() :
+		forward( 0.0f ),
+		backward( 0.0f ),
+		left( 0.0f ),
+		right( 0.0f )
+	{
+	}
+
+	//sGOSpeed( float fSpeed, float bSpeed, float lSpeed, float rSpeed ) :
+	//	forward( fSpeed ),
+	//	backward( bSpeed ),
+	//	left( lSpeed ),
+	//	right( rSpeed ) {}
 };
 
 class cGameObject
@@ -121,7 +123,9 @@ public:
 	glm::vec3 position;
 	glm::vec3 prevPosition;
 
-	sMovements myMovements;
+	eAnimationType currentState;
+
+	//sMovements* myMovements;
 	std::vector<sAnimDesc> myAnimations;
 	bool getAnimationPath( eAnimationType type, std::string &thePath );
 
@@ -135,6 +139,7 @@ public:
 	float range;
 	float health;
 	float maxVel;
+	sGOSpeed mySpeed;
 	float wanderAngle;
 
 	// Now orientation 
