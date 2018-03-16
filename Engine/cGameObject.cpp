@@ -110,52 +110,46 @@ void cGameObject::adjustQOrientationFormDeltaEuler( glm::vec3 eulerAxisOrientCha
 	return;
 }
 
-glm::vec3 cGameObject::getDirectionVector()
+glm::vec3 cGameObject::getFrontVector()
 {
-	glm::vec3 eulerAngles;
-
-	eulerAngles = glm::eulerAngles( this->qOrientation );
-	//eulerAngles = glm::normalize( eulerAngles );
-	//}
-
-	//return directionVector;
+	glm::vec3 eulerOrientation = glm::eulerAngles( this->qOrientation );	
 
 	float movAngleDegrees;
 
-	float zDegrees = glm::degrees( eulerAngles.z );
-	float yDegrees = glm::degrees( eulerAngles.y );
-
+	float zDegrees = glm::degrees( eulerOrientation.z );
+	float yDegrees = glm::degrees( eulerOrientation.y );
+	
 	if( zDegrees != 0.0f )
-	{
+	{	// Corrects the angle using Z value
 		movAngleDegrees = ( zDegrees / 2 ) + ( ( zDegrees / 2 ) - abs( yDegrees ) );
 		if( yDegrees < 0 )
-		{
 			movAngleDegrees *= -1;
-		}
 	}
 	else
-	{
+	{	// Use only the Y value
 		movAngleDegrees = yDegrees;
 	}
 
-	glm::vec3 directionVector = glm::vec3( 0.0f );
-	directionVector.z = glm::cos( glm::radians( movAngleDegrees ) );
-	directionVector.x = glm::sin( glm::radians( movAngleDegrees ) );
+	glm::vec3 frontVector = glm::vec3( glm::sin( glm::radians( movAngleDegrees ) ),
+										   0.0f,
+										   glm::cos( glm::radians( movAngleDegrees ) ) );	
 
-	directionVector = glm::normalize( directionVector );
-	
-	//float temp = glm::atan( directionVector.x, directionVector.z );
-	//// Convert it from radians to degrees
-	//temp = glm::degrees( temp );
+	return glm::normalize( frontVector );
+}
 
-	//std::cout << "Angle in Degrees: " << movAngleDegrees
-	//	<< " New angle in Degrees: " << temp << std::endl;
-	//	//<< " dir. vector: ( " << directionVector.x << ", "
-	//	//<< directionVector.y << ", "
-	//	//<< directionVector.z << ")"
-	//	//<< std::endl;
+glm::vec3 cGameObject::getRightVector()
+{
+	glm::vec3 theFrontVector = this->getFrontVector();
 
-	return directionVector;
+	float theta = glm::radians( 90.0f );
+	float cosT = cos( theta );
+	float sinT = sin( theta );
+
+	glm::vec3 rightVector = glm::vec3( 0.0f );
+	rightVector.x = theFrontVector.x * cosT - theFrontVector.z * sinT;
+	rightVector.z = theFrontVector.x * sinT + theFrontVector.z * cosT;
+
+	return glm::normalize( rightVector );
 }
 
 bool cGameObject::isFacingMe( glm::vec3 targetDirection, glm::vec3 targetPosition )

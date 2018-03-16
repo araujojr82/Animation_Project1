@@ -149,7 +149,8 @@ public:
 	glm::quat qOrientation;
 	glm::quat prevOrientation;
 
-	glm::vec3 getDirectionVector();
+	glm::vec3 getFrontVector();
+	glm::vec3 getRightVector();
 	bool isFacingMe( glm::vec3 targetDirection, glm::vec3 targetPosition );
 
 

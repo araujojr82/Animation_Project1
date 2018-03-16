@@ -146,7 +146,7 @@ void cSteeringManager::setBehaviour( cGameObject* pTheGO, cGameObject* pTargetGO
 	float distanceFromThePlayer = glm::distance( pTheGO->position, pTargetGO->position );
 	float playerHealth = pTargetGO->health;
 
-	bool bPlayerIsFacingMe = pTheGO->isFacingMe( pTargetGO->getDirectionVector(), pTargetGO->position );	
+	bool bPlayerIsFacingMe = pTheGO->isFacingMe( pTargetGO->getFrontVector(), pTargetGO->position );	
 	bool bIsPlayerInRange = false;
 	if( distanceFromThePlayer <= pTheGO->range ) bIsPlayerInRange = true;
 

@@ -338,13 +338,56 @@ void move_player()
 	if( isnan( ::g_pThePlayerGO->vel.y ) ) ::g_pThePlayerGO->vel.y = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.z ) ) ::g_pThePlayerGO->vel.z = 0.0f;
 	
-	
-	if( ::g_pThePlayerGO->currentState == WALK_FORWARD )
+	if( ::g_pThePlayerGO->currentState == eAnimationType::MOVE_RIGHT ||
+		::g_pThePlayerGO->currentState == eAnimationType::STRAFE_RIGHT )
+	{
+		float maxSpeed = ::g_pThePlayerGO->mySpeed.right * ::g_pThePlayerGO->scale;
+
+		movement = ::g_pThePlayerGO->getRightVector() * 0.01f;
+
+		::g_pThePlayerGO->vel += movement;
+
+		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
+		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
+		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
+
+		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
+			abs( ::g_pThePlayerGO->vel.y ) +
+			abs( ::g_pThePlayerGO->vel.z );
+		if( totalVelocity > maxSpeed )
+		{
+			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
+		}
+
+	}
+	if( ::g_pThePlayerGO->currentState == eAnimationType::MOVE_LEFT ||
+		::g_pThePlayerGO->currentState == eAnimationType::STRAFE_LEFT )
+	{
+		float maxSpeed = ::g_pThePlayerGO->mySpeed.right * ::g_pThePlayerGO->scale;
+
+		movement = ::g_pThePlayerGO->getRightVector() * 0.01f;
+
+		::g_pThePlayerGO->vel -= movement;
+
+		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
+		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
+		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
+
+		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
+			abs( ::g_pThePlayerGO->vel.y ) +
+			abs( ::g_pThePlayerGO->vel.z );
+		if( totalVelocity > maxSpeed )
+		{
+			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
+		}
+
+	}
+	else if( ::g_pThePlayerGO->currentState == WALK_FORWARD )
 	{	
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.forward * ::g_pThePlayerGO->scale;
 
-		movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
-		movement *= 0.01f;
+		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;		
+
 		::g_pThePlayerGO->vel += movement;
 
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
