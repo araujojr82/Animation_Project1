@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#include "cAnimationState.h"
+
 extern cSteeringManager* g_pSteeringManager;
 
 bool isShiftKeyDown( int mods, bool bByItself = true );
@@ -19,15 +21,69 @@ glm::vec3 movement = glm::vec3( 0.0f );
 
 /*static*/ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mods )
 {
+
+	// TEMP ANIMATIONS------------------------------
+	cAnimationState::sStateDetails walkForward;
+	walkForward.name = "assets/models/rick/Walking.fbx";
+	walkForward.totalTime = 0.8f;
+	walkForward.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails walkBackward;
+	walkBackward.name = "assets/models/rick/Walking Backward.fbx";
+	walkBackward.totalTime = 0.8f;
+	walkBackward.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails leftAnimation;
+	leftAnimation.name = "assets/models/rick/Left Strafe Walk.fbx";
+	leftAnimation.totalTime = 0.8f;
+	leftAnimation.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails rightAnimation;
+	rightAnimation.name = "assets/models/rick/Right Strafe Walk.fbx";
+	rightAnimation.totalTime = 0.8f;
+	rightAnimation.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails jumpAnimation;
+	jumpAnimation.name = "assets/models/rick/Jumping.fbx";
+	jumpAnimation.totalTime = 1.1f;
+	jumpAnimation.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails idleAnimation2;
+	idleAnimation2.name = "assets/models/rick/Breathing Idle.fbx";
+	idleAnimation2.totalTime = 1.1f;
+	idleAnimation2.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails leftAnimation2;
+	leftAnimation2.name = "assets/models/rick/Crouched Sneaking Left.fbx";
+	leftAnimation2.totalTime = 0.8f;
+	leftAnimation2.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails rightAnimation2;
+	rightAnimation2.name = "assets/models/rick/Crouched Sneaking Right.fbx";
+	rightAnimation2.totalTime = 0.8f;
+	rightAnimation2.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails actionAnimation;
+	actionAnimation.name = "assets/models/rick/Gangnam Style.fbx";
+	actionAnimation.totalTime = 1.1f;
+	actionAnimation.frameStepTime = 0.005f;
+
+	cAnimationState::sStateDetails runningAnimation;
+	runningAnimation.name = "assets/models/rick/Running.fbx";
+	runningAnimation.totalTime = 1.1f;
+	runningAnimation.frameStepTime = 0.005f;
+	// ----------------------------------------------
+
 	MOVEMENT_CHANGE = false;
 
 	if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GLFW_TRUE );
 
-	if( key == GLFW_KEY_SPACE )
+	if( key == GLFW_KEY_SPACE && action == GLFW_PRESS )
 	{
 		//		::g_GameObjects[1]->position.y += 0.01f;
-		::g_vecGameObjects[1]->position.y += 0.01f;
+		//::g_vecGameObjects[1]->position.y += 0.01f;
+		::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( jumpAnimation );
 	}
 	
 	if( key == GLFW_KEY_ENTER && action == GLFW_PRESS )
@@ -77,32 +133,41 @@ glm::vec3 movement = glm::vec3( 0.0f );
 	case GLFW_KEY_M:
 		break;
 
-	// CAMERA and lighting
 	case GLFW_KEY_A:		// Left
-							//		g_cameraTarget_XYZ.x -= CAMERASPEED;
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pLightManager->vecLights[0].position.x -= CAMERASPEED;
+			//::g_pLightManager->vecLights[0].position.x -= CAMERASPEED;
+			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( leftAnimation2 );
 		}
 		else
 		{
 			if( isAltKeyDown( mods, true ) )
-			{	// F=ma, so changing the accel REALLY is like putting a force
-				//	on an object
-			
+			{	
 			}
 			else
-			{	// Turn camera 
-				::g_pSteeringManager->CIRCLE_RADIUS *= 0.95f;
+			{	// Turn Left
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( leftAnimation );
+				//if( action == GLFW_PRESS )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	TURNING_LEFT = true;
+				//}
+				//else if( action == GLFW_RELEASE )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	TURNING_LEFT = false;
+				//}
+				//::g_pSteeringManager->CIRCLE_RADIUS *= 0.95f;
 				
 			}
 		}
 		break;
 	case GLFW_KEY_D:		// Right
-							//		g_cameraTarget_XYZ.x += CAMERASPEED;
+
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pLightManager->vecLights[0].position.x += CAMERASPEED;
+			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( rightAnimation2 );
+			//::g_pLightManager->vecLights[0].position.x += CAMERASPEED;
 		}
 		else
 		{
@@ -112,30 +177,54 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			
 			}
 			else
-			{	// Turn camera 
-				::g_pSteeringManager->CIRCLE_RADIUS *= 1.05f;
+			{	// Turn right 
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( rightAnimation );
+
+				//if( action == GLFW_PRESS )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	TURNING_RIGHT = true;
+				//}
+				//else if( action == GLFW_RELEASE )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	TURNING_RIGHT = false;
+				//}
+				//::g_pSteeringManager->CIRCLE_RADIUS *= 1.05f;
 			}
 		}
 		break;
-	case GLFW_KEY_W:		// Forward (along z)
+	case GLFW_KEY_W:		// Forward
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pLightManager->vecLights[0].position.z += CAMERASPEED;
+			//::g_pLightManager->vecLights[0].position.z += CAMERASPEED;
+			::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( runningAnimation );
+
 		}
 		else
 		{
 			if( isAltKeyDown( mods, true ) )
-			{	// F=ma, so changing the accel REALLY is like putting a force
-				//	on an object
-			
+			{
+
 			}
 			else
-			{	// Pitch down
-				::g_pSteeringManager->CIRCLE_DISTANCE *= 1.05f;
+			{
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( walkForward );
+				//if( action == GLFW_PRESS )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	MOVING_FORWARD = true;
+				//}
+				//else if( action == GLFW_RELEASE )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	MOVING_FORWARD = false;
+				//}
+				//::g_pSteeringManager->CIRCLE_DISTANCE *= 1.05f;
 			}
 		}
 		break;
-	case GLFW_KEY_S:		// Backwards (along z)
+	case GLFW_KEY_S:		// Backwards
 		if( isShiftKeyDown( mods, true ) )
 		{
 			::g_pLightManager->vecLights[0].position.z -= CAMERASPEED;
@@ -143,20 +232,30 @@ glm::vec3 movement = glm::vec3( 0.0f );
 		else
 		{
 			if( isAltKeyDown( mods, true ) )
-			{	// F=ma, so changing the accel REALLY is like putting a force
-				//	on an object
-			
+			{
+
 			}
 			else
-			{	// Pitch down
-				::g_pSteeringManager->CIRCLE_DISTANCE *= 0.95f;
+			{	
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( walkBackward );
+				//if( action == GLFW_PRESS )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	MOVING_BACKWARD = true;
+				//}
+				//else if( action == GLFW_RELEASE )
+				//{
+				//	MOVEMENT_CHANGE = true;
+				//	MOVING_BACKWARD = false;
+				//}
+				//::g_pSteeringManager->CIRCLE_DISTANCE *= 0.95f;
 			}
 		}
 		break;
 	case GLFW_KEY_Q:		// "Down" (along y axis)
 		if( isShiftKeyDown( mods, true ) )
 		{
-			::g_pLightManager->vecLights[0].position.y -= CAMERASPEED;
+			//::g_pLightManager->vecLights[0].position.y -= CAMERASPEED;
 		}
 		else
 		{
@@ -168,7 +267,8 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			}
 			else
 			{	// "roll" left (counter-clockwise)
-				::g_pSteeringManager->ANGLE_CHANGE *= 0.95f;
+				//::g_pSteeringManager->ANGLE_CHANGE *= 0.95f;
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( idleAnimation2 );
 			}
 		}
 		break;
@@ -176,6 +276,7 @@ glm::vec3 movement = glm::vec3( 0.0f );
 		if( isShiftKeyDown( mods, true ) )
 		{
 			::g_pLightManager->vecLights[0].position.y += CAMERASPEED;
+
 		}
 		else
 		{
@@ -187,7 +288,8 @@ glm::vec3 movement = glm::vec3( 0.0f );
 			}
 			else
 			{	// "roll" left (counter-clockwise)
-				::g_pSteeringManager->ANGLE_CHANGE *= 1.05f;
+				//::g_pSteeringManager->ANGLE_CHANGE *= 1.05f;
+				::g_pThePlayerGO->pAniState->vecAnimationQueue.push_back( actionAnimation );
 			}
 		}
 		break;
@@ -214,67 +316,15 @@ glm::vec3 movement = glm::vec3( 0.0f );
 		break;
 
 	case GLFW_KEY_UP:
-		if( action == GLFW_PRESS )
-		{
-			MOVEMENT_CHANGE = true;
-			MOVING_FORWARD = true;
-		}			
-		else if( action == GLFW_RELEASE )
-		{
-			MOVEMENT_CHANGE = true;
-			MOVING_FORWARD = false;
-		}
-			
-		//movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
-		//movement *= 0.1f;
-		//::g_pThePlayerGO->position += movement;
 		break;
 
 	case GLFW_KEY_DOWN:
-		if( action == GLFW_PRESS )
-		{
-			MOVEMENT_CHANGE = true;
-			MOVING_BACKWARD = true;
-		}	
-		else if( action == GLFW_RELEASE )
-		{
-			MOVEMENT_CHANGE = true;
-			MOVING_BACKWARD = false;
-		}
-		//movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
-		//movement *= -0.1f;
-		//::g_pThePlayerGO->position += movement;
 		break;
 
-	case GLFW_KEY_LEFT:
-		if( action == GLFW_PRESS )
-		{
-			MOVEMENT_CHANGE = true;
-			TURNING_LEFT = true;
-		}	
-		else if( action == GLFW_RELEASE )
-		{
-			MOVEMENT_CHANGE = true;
-			TURNING_LEFT = false;
-		}
-		//if( action == GLFW_PRESS )
-		//::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, glm::radians(45.0f), 0.0f ) );
+	case GLFW_KEY_LEFT:		
 		break;
 
-	case GLFW_KEY_RIGHT:	
-		if( action == GLFW_PRESS )
-		{
-			MOVEMENT_CHANGE = true;
-			TURNING_RIGHT = true;
-		}			
-		else if( action == GLFW_RELEASE )
-		{
-			MOVEMENT_CHANGE = true;
-			TURNING_RIGHT = false;
-		}			
-		//if( action == GLFW_PRESS )
-		////::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.1f, 0.0f ) );
-		//::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, glm::radians( -45.0f ), 0.0f ) );
+	case GLFW_KEY_RIGHT:		
 		break;
 	}
 

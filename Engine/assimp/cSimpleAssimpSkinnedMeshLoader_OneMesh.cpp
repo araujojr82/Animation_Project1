@@ -38,9 +38,6 @@ cSimpleAssimpSkinnedMesh::cSimpleAssimpSkinnedMesh(void)
 	//this->m_bVAO_created = false;
 	//this->m_shaderIDMatchingVAO = 0;
 
-	this->pPreviousAnimationName = "";
-	this->pelvisStartingPosition = glm::vec3( 0.0f );
-
 	return;
 }
 

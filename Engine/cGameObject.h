@@ -60,6 +60,30 @@ enum eTypeOfObject
 	UNKNOWN = 99	// I don't know
 };
 
+enum eAnimationType
+{
+	BASE = 0,
+	JUMP,
+	STRAFE_LEFT,
+	STRAFE_RIGHT,
+	MOVE_LEFT,
+	MOVE_RIGHT,
+	RUN,
+	WALK_FORWARD,
+	WALK_BACKWARD,
+	ACTION
+};
+
+struct animDesc
+{
+	eAnimationType type;
+	std::string filePath;
+
+	animDesc( eAnimationType t, std::string path ) :
+		type( t ),
+		filePath( path ){}
+};
+
 class cGameObject
 {
 public:
@@ -67,6 +91,8 @@ public:
 	~cGameObject();		// destructor
 	glm::vec3 position;
 	glm::vec3 prevPosition;
+
+	std::vector<animDesc> myAnimations;
 
 	glm::vec3 getPosition( void );
 

@@ -26,9 +26,6 @@ class cSimpleAssimpSkinnedMesh
 private:
 	static const int MAX_BONES_PER_VERTEX = 4;
 
-	std::string pPreviousAnimationName;
-	glm::vec3 pelvisStartingPosition;
-
 	struct sVertexBoneData
 	{
 		//std::array<unsigned int, MAX_BONES_PER_VERTEX> ids;

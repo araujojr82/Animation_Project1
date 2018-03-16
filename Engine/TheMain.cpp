@@ -650,25 +650,7 @@ int main( void )
 		// Now many seconds that have elapsed since we last checked
 		double curTime = glfwGetTime();
 		double deltaTime = curTime - lastTimeStep;
-		lastTimeStep = curTime;
-
-		move_player( deltaTime );
-
-		::g_pSteeringManager->updateAll( deltaTime );
-
-		// Check for collisions with the player and update it's health
-		collisionCheck();
-
-		// Update camera
-		//ProcessCameraInput( window, deltaTime );
-		// No need to update the camera if nothing has changed
-		if( ::g_pThePlayerGO->position != ::g_pThePlayerGO->prevPosition ||
-			::g_pThePlayerGO->qOrientation != ::g_pThePlayerGO->prevOrientation )
-		{
-			::g_pTheMouseCamera->moveCamera();
-		}
-		::g_pThePlayerGO->prevOrientation = ::g_pThePlayerGO->qOrientation;
-		::g_pThePlayerGO->prevPosition = ::g_pThePlayerGO->position;
+		lastTimeStep = curTime;		
 
 		//float ratio;
 		//int width, height;
@@ -750,6 +732,25 @@ int main( void )
 			vecCopy2ndPass.push_back( ::g_vecGameObjects[0] );
 			RenderScene( vecCopy2ndPass, ::g_pGLFWWindow, deltaTime );
 		}
+
+		move_player( deltaTime );
+
+		::g_pSteeringManager->updateAll( deltaTime );
+
+		// Check for collisions with the player and update it's health
+		collisionCheck();
+
+		// Update camera
+		//ProcessCameraInput( window, deltaTime );
+		// No need to update the camera if nothing has changed
+		if( ::g_pThePlayerGO->position != ::g_pThePlayerGO->prevPosition ||
+			::g_pThePlayerGO->qOrientation != ::g_pThePlayerGO->prevOrientation )
+		{
+			::g_pTheMouseCamera->moveCamera();
+		}
+		::g_pThePlayerGO->prevOrientation = ::g_pThePlayerGO->qOrientation;
+		::g_pThePlayerGO->prevPosition = ::g_pThePlayerGO->position;
+
 
 		std::stringstream ssTitle;
 		ssTitle << "Animation: Project 1"
@@ -858,44 +859,44 @@ glm::vec3 GetRandomPosition()
 	return newPosition;
 }
 
-void newPlayerGO()
-{
-	// Create a new GO
-	cGameObject* pTempGO3 = new cGameObject();
-
-	cMesh theBallMesh;
-	::g_pVAOManager->lookupMeshFromName( "rick", theBallMesh );
-	
-	pTempGO3->meshName = "rick";
-	pTempGO3->diffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-	
-	pTempGO3->position = glm::vec3( 0.0f, 0.0f, 0.0f );
-	pTempGO3->prevPosition = pTempGO3->position;
-	pTempGO3->scale = 1.0f;
-	pTempGO3->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-	pTempGO3->vel = glm::vec3( 0.0f );
-	pTempGO3->friendlyName = "player";
-	pTempGO3->typeOfObject = SPHERE;
-	pTempGO3->bIsUpdatedInPhysics = true;
-	pTempGO3->mass = 0.1;
-	pTempGO3->inverseMass = 1.0f / pTempGO3->mass;
-
-	pTempGO3->radius = theBallMesh.maxExtent / 2;
-
-	//pTempGO3->textureBlend[0] = 1.0f;
-	//pTempGO3->textureNames[0] = "rick_texture.bmp";
-
-	pTempGO3->type = eTypeOfGO::CHARACTER;
-	pTempGO3->team = eTeam::PLAYER;
-	pTempGO3->enemyType = eEnemyType::UNAVAIABLE;
-	pTempGO3->range = 4.0f;
-	pTempGO3->maxVel = 0.05f;
-	pTempGO3->health = 100.0f;
-
-	::g_vecGameObjects.push_back( pTempGO3 );
-	::g_GameObjNumber = ::g_vecGameObjects.size() - 1;
-
-}
+//void newPlayerGO()
+//{
+//	// Create a new GO
+//	cGameObject* pTempGO3 = new cGameObject();
+//
+//	cMesh theBallMesh;
+//	::g_pVAOManager->lookupMeshFromName( "rick", theBallMesh );
+//	
+//	pTempGO3->meshName = "rick";
+//	pTempGO3->diffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
+//	
+//	pTempGO3->position = glm::vec3( 0.0f, 0.0f, 0.0f );
+//	pTempGO3->prevPosition = pTempGO3->position;
+//	pTempGO3->scale = 1.0f;
+//	pTempGO3->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+//	pTempGO3->vel = glm::vec3( 0.0f );
+//	pTempGO3->friendlyName = "player";
+//	pTempGO3->typeOfObject = SPHERE;
+//	pTempGO3->bIsUpdatedInPhysics = true;
+//	pTempGO3->mass = 0.1;
+//	pTempGO3->inverseMass = 1.0f / pTempGO3->mass;
+//
+//	pTempGO3->radius = theBallMesh.maxExtent / 2;
+//
+//	//pTempGO3->textureBlend[0] = 1.0f;
+//	//pTempGO3->textureNames[0] = "rick_texture.bmp";
+//
+//	pTempGO3->type = eTypeOfGO::CHARACTER;
+//	pTempGO3->team = eTeam::PLAYER;
+//	pTempGO3->enemyType = eEnemyType::UNAVAIABLE;
+//	pTempGO3->range = 4.0f;
+//	pTempGO3->maxVel = 0.05f;
+//	pTempGO3->health = 100.0f;
+//
+//	::g_vecGameObjects.push_back( pTempGO3 );
+//	::g_GameObjNumber = ::g_vecGameObjects.size() - 1;
+//
+//}
 
 //Load objects.txt
 void loadObjectsFile( std::string fileName )
