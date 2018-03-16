@@ -150,23 +150,23 @@ void cSteeringManager::setBehaviour( cGameObject* pTheGO, cGameObject* pTargetGO
 	bool bIsPlayerInRange = false;
 	if( distanceFromThePlayer <= pTheGO->range ) bIsPlayerInRange = true;
 
-	switch( pTheGO->enemyType )
+	switch( pTheGO->behaviour )
 	{
 		case ANGRY :
 			if( playerHealth < 25.0f )
 			{
-				pTheGO->behaviour = eEnemyBehaviour::SEEK;
+				pTheGO->steeringBehaviour = eSteeringBehaviour::SEEK;
 			}
 			else
 			{
 				if( bIsPlayerInRange )
 				{
-					if( bPlayerIsFacingMe )	pTheGO->behaviour = eEnemyBehaviour::FLEE;
-					else					pTheGO->behaviour = eEnemyBehaviour::SEEK;
+					if( bPlayerIsFacingMe )	pTheGO->steeringBehaviour = eSteeringBehaviour::FLEE;
+					else					pTheGO->steeringBehaviour = eSteeringBehaviour::SEEK;
 				}
 				else
 				{
-					pTheGO->behaviour = eEnemyBehaviour::IDLE;
+					pTheGO->steeringBehaviour = eSteeringBehaviour::IDLE;
 				}
 			}
 			break;
@@ -177,29 +177,29 @@ void cSteeringManager::setBehaviour( cGameObject* pTheGO, cGameObject* pTargetGO
 				//if( bPlayerIsFacingMe )	pTheGO->behaviour = eEnemyBehaviour::EVADE;
 				//else					pTheGO->behaviour = eEnemyBehaviour::APPROACH;
 
-				if( bPlayerIsFacingMe )	pTheGO->behaviour = eEnemyBehaviour::EVADE;
-				else					pTheGO->behaviour = eEnemyBehaviour::APPROACH;
+				if( bPlayerIsFacingMe )	pTheGO->steeringBehaviour = eSteeringBehaviour::EVADE;
+				else					pTheGO->steeringBehaviour = eSteeringBehaviour::APPROACH;
 
 			}
 			else
 			{
-				pTheGO->behaviour = eEnemyBehaviour::IDLE;
+				pTheGO->steeringBehaviour = eSteeringBehaviour::IDLE;
 			}
 			break;
 
 		case FOLLOWER :
 			if( bIsPlayerInRange )
 			{
-				pTheGO->behaviour = eEnemyBehaviour::SEEK;
+				pTheGO->steeringBehaviour = eSteeringBehaviour::SEEK;
 			}
 			else
 			{
-				pTheGO->behaviour = eEnemyBehaviour::IDLE;
+				pTheGO->steeringBehaviour = eSteeringBehaviour::IDLE;
 			}
 			break;
 
 		default:
-			pTheGO->behaviour = eEnemyBehaviour::IDLE;
+			pTheGO->steeringBehaviour = eSteeringBehaviour::IDLE;
 			break;
 	}
 	

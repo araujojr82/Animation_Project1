@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+extern enum eAnimationType;
+
 class cAnimationState
 {
 public:
@@ -25,8 +27,10 @@ public:
 		bool IncrementTime(bool bResetToZero = true);
 	};
 	
-	std::vector<sStateDetails> vecAnimationQueue;
+	//std::vector<sStateDetails> vecAnimationQueue;
 	sStateDetails defaultAnimation;
+	sStateDetails currentAnimation;
+	eAnimationType currentAnimationType;
 };
 
 #endif 

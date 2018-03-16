@@ -37,6 +37,9 @@
 #include "commands\cCommandScheduler.h"
 #include "commands\cComMoveTo.h"
 
+#include "cAnimationState.h"
+#include "assimp\cSimpleAssimpSkinnedMeshLoader_OneMesh.h"
+
 //#include "cSteeringManager.h"
 
 #include "cFBO.h" 
@@ -49,12 +52,6 @@ const float maxZ = 15.0f;
 const float minZ = -15.0f;
 
 cSteeringManager* g_pSteeringManager = NULL;
-
-extern bool MOVING_FORWARD;
-extern bool MOVING_BACKWARD;
-extern bool TURNING_LEFT;
-extern bool TURNING_RIGHT;
-extern bool MOVEMENT_CHANGE;
 
 // Euclides: Control selected object for movement
 int g_GameObjNumber = 0;				// game object vector position number 
@@ -160,22 +157,93 @@ static void error_callback( int error, const char* description )
 
 #include <math.h>
 
-void turn_player( double deltaTime )
-{
+//void turn_player( double deltaTime )
+//{
+//
+//}
 
+bool createState( cGameObject* pTheGO, eAnimationType type, cAnimationState::sStateDetails &theState )
+{
+	std::string theAnimPath;
+	if( !pTheGO->getAnimationPath( type, theAnimPath ) )
+	{
+		return false;
+	}
+	else
+
+	theState.name = theAnimPath;
+	theState.totalTime = pTheGO->pSimpleSkinnedMesh->GetDuration( theAnimPath );
+	theState.frameStepTime = 0.01f;
+
+	return true;
+}
+
+
+void updateCurrentAnimation( eAnimationType type )
+{
+	cAnimationState* pAniState = ::g_pThePlayerGO->pAniState;
+
+	if( pAniState->currentAnimationType != type )
+	{
+		cAnimationState::sStateDetails newState;
+		if( !createState( ::g_pThePlayerGO, type, newState ) )
+		{
+			newState.name = "none";
+		}
+		::g_pThePlayerGO->pAniState->currentAnimation = newState;
+	}
+
+	return;
 }
 
 void move_player( double deltaTime )
 {
+	sMovements theMovements = ::g_pThePlayerGO->myMovements;
+
 	float totalVelocity = 0.0f;
 	glm::vec3 movement = glm::vec3( 0.0f );
 
 	if( isnan( ::g_pThePlayerGO->vel.x ) ) ::g_pThePlayerGO->vel.x = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.y ) ) ::g_pThePlayerGO->vel.y = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.z ) ) ::g_pThePlayerGO->vel.z = 0.0f;
-
-	if( MOVING_FORWARD )
-	{		
+	
+	if( theMovements.bChangedMovement )
+	{
+		if( theMovements.bIsMovingForward )
+			updateCurrentAnimation( WALK_FORWARD );
+		else if( theMovements.bIsMovingBackward )
+			updateCurrentAnimation( WALK_BACKWARD );
+		else if( theMovements.bIsMovingLeft )
+		{
+			if( theMovements.bIsStrafing )
+				updateCurrentAnimation( STRAFE_LEFT );
+			else
+				updateCurrentAnimation( MOVE_LEFT );
+		}
+		else if( theMovements.bIsMovingRight )
+		{
+			if( theMovements.bIsStrafing )
+				updateCurrentAnimation( STRAFE_RIGHT );
+			else
+				updateCurrentAnimation( MOVE_RIGHT );
+		}			
+		else if( theMovements.bIsRunning )
+			updateCurrentAnimation( RUN );
+		else if( theMovements.bIsJumping )
+			updateCurrentAnimation(JUMP);
+		else if( theMovements.bIsDoingAction )
+			updateCurrentAnimation( ACTION );
+		//else if( theMovements.bIsTurningLeft )
+		//	updateCurrentAnimation();
+		//else if( theMovements.bIsTurningRight )
+		//	updateCurrentAnimation();
+		else
+			updateCurrentAnimation( NOTHING );
+	}
+	
+	if( theMovements.bIsMovingForward )
+	{	
+		updateCurrentAnimation( eAnimationType::WALK_FORWARD );
 		movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
 		movement *= 0.01f;
 		::g_pThePlayerGO->vel += movement;
@@ -192,7 +260,7 @@ void move_player( double deltaTime )
 			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * ::g_pThePlayerGO->maxVel;			
 		}
 	}
-	else if( MOVING_BACKWARD )
+	else if( theMovements.bIsMovingBackward )
 	{
 		movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
 		movement *= 0.01f;
@@ -221,9 +289,9 @@ void move_player( double deltaTime )
 	}
 	::g_pThePlayerGO->position += ::g_pThePlayerGO->vel;
 
-	if( TURNING_LEFT )
+	if( theMovements.bIsTurningLeft )
 		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.05f, 0.0f ) );
-	if( TURNING_RIGHT )
+	if( theMovements.bIsTurningRight )
 		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.05f, 0.0f ) );
 
 	return;
@@ -960,7 +1028,7 @@ void loadObjectsFile( std::string fileName )
 				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::PLAYER;
-				pTempGO->enemyType = eEnemyType::UNAVAIABLE;
+				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
 			}
 
 			else if( pTempGO->meshName == "scary" )
@@ -969,7 +1037,7 @@ void loadObjectsFile( std::string fileName )
 				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::ENEMY;
-				pTempGO->enemyType = eEnemyType::ANGRY;
+				pTempGO->behaviour = eBehaviour::ANGRY;
 				pTempGO->range = 6.0f;
 				pTempGO->health = 100.0f;
 				pTempGO->maxVel = 1.5f;
@@ -981,7 +1049,7 @@ void loadObjectsFile( std::string fileName )
 				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::ENEMY;
-				pTempGO->enemyType = eEnemyType::FOLLOWER;
+				pTempGO->behaviour = eBehaviour::FOLLOWER;
 				pTempGO->range = 8.0f;
 				pTempGO->health = 100.0f;
 				pTempGO->maxVel = 1.0f;
@@ -993,7 +1061,7 @@ void loadObjectsFile( std::string fileName )
 				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::CHARACTER;
 				pTempGO->team = eTeam::ENEMY;
-				pTempGO->enemyType = eEnemyType::CURIOUS;
+				pTempGO->behaviour = eBehaviour::CURIOUS;
 				pTempGO->range = 6.0f;
 				pTempGO->health = 100.0f;
 				pTempGO->maxVel = 1.5f;
@@ -1005,7 +1073,7 @@ void loadObjectsFile( std::string fileName )
 				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::OTHER;
 				pTempGO->team = eTeam::NONE;
-				pTempGO->enemyType = eEnemyType::UNAVAIABLE;
+				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
 			}
 				
 			else if( pTempGO->meshName == "terrain" )
@@ -1014,7 +1082,7 @@ void loadObjectsFile( std::string fileName )
 				//pTempGO->textureBlend[0] = 1.0f;
 				pTempGO->type = eTypeOfGO::TERRAIN;
 				pTempGO->team = eTeam::NONE;
-				pTempGO->enemyType = eEnemyType::UNAVAIABLE;
+				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
 			}
 			
 

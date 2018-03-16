@@ -76,7 +76,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 
 		pTempGO->type = eTypeOfGO::CHARACTER;
 		pTempGO->team = eTeam::PLAYER;
-		pTempGO->enemyType = eEnemyType::FOLLOWER;
+		pTempGO->behaviour = eBehaviour::FOLLOWER;
 		pTempGO->range = 4.0f;
 		pTempGO->maxVel = 0.05f;
 		pTempGO->health = 100.0f;
@@ -123,7 +123,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 
 		pTempGO->type = eTypeOfGO::CHARACTER;
 		pTempGO->team = eTeam::PLAYER;
-		pTempGO->enemyType = eEnemyType::UNAVAIABLE;
+		pTempGO->behaviour = eBehaviour::UNAVAIABLE;
 		pTempGO->range = 4.0f;
 		pTempGO->maxVel = 0.05f;
 		pTempGO->health = 100.0f;

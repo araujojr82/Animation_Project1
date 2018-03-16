@@ -30,7 +30,7 @@ enum eTeam
 	NONE = 3
 };
 
-enum eEnemyType
+enum eBehaviour
 {
 	ANGRY = 0,
 	CURIOUS = 1,
@@ -38,7 +38,7 @@ enum eEnemyType
 	UNAVAIABLE = 3
 };
 
-enum eEnemyBehaviour
+enum eSteeringBehaviour
 {
 	WANDER = 0,
 	SEEK,
@@ -71,7 +71,8 @@ enum eAnimationType
 	RUN,
 	WALK_FORWARD,
 	WALK_BACKWARD,
-	ACTION
+	ACTION,
+	NOTHING
 };
 
 struct sAnimDesc
@@ -129,8 +130,8 @@ public:
 	// AI additions
 	eTypeOfGO type;
 	eTeam team;
-	eEnemyType enemyType;
-	eEnemyBehaviour behaviour;
+	eBehaviour behaviour;
+	eSteeringBehaviour steeringBehaviour;
 	float range;
 	float health;
 	float maxVel;

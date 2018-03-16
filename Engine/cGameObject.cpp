@@ -48,8 +48,8 @@ cGameObject::cGameObject()
 
 	this->type = eTypeOfGO::OTHER;
 	this->team = eTeam::NONE;
-	this->enemyType = eEnemyType::UNAVAIABLE;
-	this->behaviour = eEnemyBehaviour::NA;
+	this->behaviour = eBehaviour::UNAVAIABLE;
+	this->steeringBehaviour = eSteeringBehaviour::NA;
 	this->range = NULL;
 	this->health = NULL;
 	this->maxVel = NULL;

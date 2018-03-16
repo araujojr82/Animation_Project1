@@ -693,23 +693,30 @@ void CalculateSkinnedMeshBonesAndLoad( sMeshDrawInfo &theMesh, cGameObject* pThe
 	// See what animation should be playing... 
 	cAnimationState* pAniState = pTheGO->pAniState;
 
-	// Are there any animations in the queue of animations
-	if( !pAniState->vecAnimationQueue.empty() )
+	if( pAniState->currentAnimation.name != "none" )
 	{
-		// Play the "1st" animation in the queue 
-		animationToPlay = pAniState->vecAnimationQueue[0].name;
-		curFrameTime = pAniState->vecAnimationQueue[0].currentTime;
+		pAniState->currentAnimation.IncrementTime();
 
-		// Increment the top animation in the queue
-		if( pAniState->vecAnimationQueue[0].IncrementTime() )
-		{
-			// The animation reset to zero on increment...
-			// ...meaning that the 1st animation is done
-			// (WHAT!? Should you use a vector for this???)
-			pAniState->vecAnimationQueue.erase( pAniState->vecAnimationQueue.begin() );
-
-		}//vecAnimationQueue[0].IncrementTime()
+		animationToPlay = pAniState->currentAnimation.name;
+		curFrameTime = pAniState->currentAnimation.currentTime;
 	}
+	//// Are there any animations in the queue of animations
+	//if( !pAniState->vecAnimationQueue.empty() )
+	//{
+	//	// Play the "1st" animation in the queue 
+	//	animationToPlay = pAniState->vecAnimationQueue[0].name;
+	//	curFrameTime = pAniState->vecAnimationQueue[0].currentTime;
+
+	//	// Increment the top animation in the queue
+	//	if( pAniState->vecAnimationQueue[0].IncrementTime() )
+	//	{
+	//		// The animation reset to zero on increment...
+	//		// ...meaning that the 1st animation is done
+	//		// (WHAT!? Should you use a vector for this???)
+	//		pAniState->vecAnimationQueue.erase( pAniState->vecAnimationQueue.begin() );
+
+	//	}//vecAnimationQueue[0].IncrementTime()
+	//}
 	else
 	{	// Use the default animation.
 		pAniState->defaultAnimation.IncrementTime();
