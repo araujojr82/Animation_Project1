@@ -69,6 +69,8 @@ enum eAnimationType
 	STRAFE_RIGHT,
 	MOVE_LEFT,
 	MOVE_RIGHT,
+	TURN_LEFT,
+	TURN_RIGHT,
 	RUN,
 	WALK_FORWARD,
 	WALK_BACKWARD,
@@ -86,6 +88,8 @@ enum eGOState
 	STRAFING_RIGHT,
 	MOVING_LEFT,
 	MOVING_RIGHT,
+	TURNING_LEFT,
+	TURNING_RIGHT,
 	RUNNING,
 	WALKING_FORWARD,
 	WALKING_BACKWARD,
@@ -142,6 +146,8 @@ public:
 	glm::vec3 prevPosition;
 
 	eGOState currentState;
+	bool bIsRunning;
+	bool bIsWalking;
 
 	//sMovements* myMovements;
 	std::vector<sAnimDesc> myAnimations;

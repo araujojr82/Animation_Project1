@@ -58,6 +58,8 @@ cGameObject::cGameObject()
 	this->mySpeed = sGOSpeed( 0.0f, 0.0f, 0.0f, 0.0f );
 
 	this->currentState = DOING_NOTHING;
+	this->bIsRunning = false;
+	this->bIsWalking = false;
 
 	return;
 }
@@ -141,7 +143,7 @@ glm::vec3 cGameObject::getRightVector()
 {
 	glm::vec3 theFrontVector = this->getFrontVector();
 
-	float theta = glm::radians( 90.0f );
+	float theta = glm::radians( -90.0f );
 	float cosT = cos( theta );
 	float sinT = sin( theta );
 

@@ -27,6 +27,8 @@ void changePlayerGO()
 
 			::g_pThePlayerGO = ::g_vecGameObjects[i];
 			::g_pThePlayerGO->behaviour = eBehaviour::UNAVAIABLE;
+			::g_pTheMouseCamera->setTarget( ::g_pThePlayerGO );
+			::g_pTheMouseCamera->moveCamera();
 			return;
 		}
 
@@ -65,20 +67,14 @@ void changePlayerGO()
 			}
 		}
 		else
-		{
-			if( isAltKeyDown( mods, true ) )
+		{	
+			if( action == GLFW_PRESS )
 			{
+				setState( eGOState::STRAFING_LEFT );
 			}
-			else
+			if( action == GLFW_RELEASE )
 			{
-				if( action == GLFW_PRESS )
-				{
-					setState( eGOState::STRAFING_LEFT );
-				}
-				if( action == GLFW_RELEASE )
-				{
-					setState( eGOState::DOING_NOTHING );
-				}
+				setState( eGOState::DOING_NOTHING );
 			}
 		}
 		break;
@@ -97,19 +93,13 @@ void changePlayerGO()
 		}
 		else
 		{
-			if( isAltKeyDown( mods, true ) )
-			{				
+			if( action == GLFW_PRESS )
+			{
+				setState( eGOState::STRAFING_RIGHT );
 			}
-			else
-			{	
-				if( action == GLFW_PRESS )
-				{
-					setState( eGOState::STRAFING_RIGHT );
-				}
-				if( action == GLFW_RELEASE )
-				{
-					setState( eGOState::DOING_NOTHING );
-				}
+			if( action == GLFW_RELEASE )
+			{
+				setState( eGOState::DOING_NOTHING );
 			}
 		}
 		break;
@@ -119,120 +109,82 @@ void changePlayerGO()
 			if( action == GLFW_PRESS )
 			{
 				setState( eGOState::RUNNING );
-				bIsWKeyDown = true;
+				g_pThePlayerGO->bIsRunning = true;
 			}
 			if( action == GLFW_RELEASE )
 			{
 				setState( eGOState::DOING_NOTHING );
-				bIsWKeyDown = false;
+				g_pThePlayerGO->bIsRunning = false;
 			}
 		}
 		else
 		{
-			if( isAltKeyDown( mods, true ) )
+			if( action == GLFW_PRESS )
 			{
-
+				setState( eGOState::WALKING_FORWARD );
+				g_pThePlayerGO->bIsWalking = true;					
 			}
-			else
+			if( action == GLFW_RELEASE )
 			{
-				if( action == GLFW_PRESS )
-				{
-					setState( eGOState::WALKING_FORWARD );
-					bIsWKeyDown = true;
-				}
-				if( action == GLFW_RELEASE )
-				{
-					setState( eGOState::DOING_NOTHING );
-					bIsWKeyDown = false;
-				}
+				setState( eGOState::DOING_NOTHING );
+				g_pThePlayerGO->bIsWalking = false;
 			}
 		}
 		break;
 	case GLFW_KEY_S:		// Backwards
-		if( isShiftKeyDown( mods, true ) )
+		if( action == GLFW_PRESS )
 		{
+			setState( eGOState::WALKING_BACKWARD );
 		}
-		else
+		if( action == GLFW_RELEASE )
 		{
-			if( isAltKeyDown( mods, true ) )
-			{
+			setState( eGOState::DOING_NOTHING );
+		}				
+		break;
+	case GLFW_KEY_Q:		// Turn Left
+		if( action == GLFW_PRESS )
+		{
+			setState( eGOState::TURNING_LEFT );
+		}
+		if( action == GLFW_RELEASE )
+		{
+			setState( eGOState::DOING_NOTHING );
+		}
+		break;
+	case GLFW_KEY_E:		// Turn Right
 
-			}
-			else
-			{	
-				if( action == GLFW_PRESS )
-				{
-					setState( eGOState::WALKING_BACKWARD );
-				}
-				if( action == GLFW_RELEASE )
-				{
-					setState( eGOState::DOING_NOTHING );
-				}				
-			}
+		if( action == GLFW_PRESS )
+		{
+			setState( eGOState::TURNING_RIGHT );
+		}
+		if( action == GLFW_RELEASE )
+		{
+			setState( eGOState::DOING_NOTHING );
 		}
 		break;
-	case GLFW_KEY_Q:		// "Down" (along y axis)
-		if( isShiftKeyDown( mods, true ) )
+
+	case GLFW_KEY_T:		// Perform Action
+
+		if( action == GLFW_PRESS )
 		{
-		}
-		else
-		{
-			if( isCtrlKeyDown( mods, true ) )
-			{
-				
-			}
-			else
-			{	
-			}
-		}
-		break;
-	case GLFW_KEY_E:		// "Up" (along y axis)
-		if( isShiftKeyDown( mods, true ) )
-		{
-		}
-		else
-		{
-			if( isCtrlKeyDown( mods, true ) )
-			{				
-			}
-			else
-			{	
-				if( action == GLFW_PRESS )
-				{
-					setState( eGOState::DOING_ACTION );
-				}
-				//if( action == GLFW_RELEASE )
-				//{
-				//	setState( eGOState::DOING_NOTHING );
-				//}
-			}
+			setState( eGOState::DOING_ACTION );
 		}
 		break;
 
 	case GLFW_KEY_SPACE:
 		if( action == GLFW_PRESS )
 		{
-			if( bIsWKeyDown )
-			{
-				if( isShiftKeyDown( mods, true ) )
-				{
-					setState( eGOState::JUMPING_LONG );
-				}
-				else
-				{
-					setState( eGOState::JUMPING_SHORT );
-				}
-			}
-			else
-			{
-				setState( eGOState::JUMPING_STATIC );
-			}
+			if( ::g_pThePlayerGO->bIsWalking )
+				setState( eGOState::JUMPING_SHORT );
 			
+			else if( ::g_pThePlayerGO->bIsRunning )
+		    	setState( eGOState::JUMPING_LONG );			
+			
+			else
+				setState( eGOState::JUMPING_STATIC );
+			
+			return;
 		}
-		//if( action == GLFW_RELEASE )
-		//{
-		//	setState( eGOState::DOING_NOTHING );
-		//}
 		break;
 
 	case GLFW_KEY_UP:
@@ -247,6 +199,7 @@ void changePlayerGO()
 	case GLFW_KEY_RIGHT:		
 		break;
 	}
+
 	return;
 }
 

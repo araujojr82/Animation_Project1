@@ -701,29 +701,12 @@ void CalculateSkinnedMeshBonesAndLoad( sMeshDrawInfo &theMesh, cGameObject* pThe
 		animationToPlay = pAniState->currentAnimation.name;
 		curFrameTime = pAniState->currentAnimation.currentTime;
 
-		if( pTheGO->behaviour == eBehaviour::UNAVAIABLE ) // HACK
-		{
-			std::cout << pAniState->currentAnimation.name << ": " <<
-				pAniState->currentAnimation.currentTime << std::endl;
-		}
+		//if( pTheGO->behaviour == eBehaviour::UNAVAIABLE ) // HACK
+		//{
+		//	std::cout << pAniState->currentAnimation.name << ": " <<
+		//		pAniState->currentAnimation.currentTime << std::endl;
+		//}
 	}
-	//// Are there any animations in the queue of animations
-	//if( !pAniState->vecAnimationQueue.empty() )
-	//{
-	//	// Play the "1st" animation in the queue 
-	//	animationToPlay = pAniState->vecAnimationQueue[0].name;
-	//	curFrameTime = pAniState->vecAnimationQueue[0].currentTime;
-
-	//	// Increment the top animation in the queue
-	//	if( pAniState->vecAnimationQueue[0].IncrementTime() )
-	//	{
-	//		// The animation reset to zero on increment...
-	//		// ...meaning that the 1st animation is done
-	//		// (WHAT!? Should you use a vector for this???)
-	//		pAniState->vecAnimationQueue.erase( pAniState->vecAnimationQueue.begin() );
-
-	//	}//vecAnimationQueue[0].IncrementTime()
-	//}
 	else
 	{	// Use the default animation.
 		pAniState->defaultAnimation.IncrementTime();
@@ -731,11 +714,11 @@ void CalculateSkinnedMeshBonesAndLoad( sMeshDrawInfo &theMesh, cGameObject* pThe
 		animationToPlay = pAniState->defaultAnimation.name;
 		curFrameTime = pAniState->defaultAnimation.currentTime;
 
-		if( pTheGO->behaviour == eBehaviour::UNAVAIABLE ) // HACK
-		{
-			std::cout << pAniState->defaultAnimation.name << ": " <<
-				pAniState->defaultAnimation.currentTime << std::endl;
-		}
+		//if( pTheGO->behaviour == eBehaviour::UNAVAIABLE ) // HACK
+		//{
+		//	std::cout << pAniState->defaultAnimation.name << ": " <<
+		//		pAniState->defaultAnimation.currentTime << std::endl;
+		//}
 
 	}//if ( pAniState->vecAnimationQueue.empty()
 

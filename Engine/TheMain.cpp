@@ -62,7 +62,7 @@ bool g_bIsWireframe = false;
 
 cCommandScheduler g_theScheduler;
 
-int g_NUMBER_OF_LIGHTS = 4;
+int g_NUMBER_OF_LIGHTS = 1;
 
 std::vector< cGameObject* > g_vecGameObjects;
 
@@ -153,9 +153,6 @@ static void error_callback( int error, const char* description )
 {
 	fprintf( stderr, "Error: %s\n", description );
 }
-
-
-#include <math.h>
 
 //void turn_player( double deltaTime )
 //{
@@ -261,6 +258,12 @@ void setState( eGOState nextState )
 			case MOVING_RIGHT:
 				::g_pThePlayerGO->currentState = theNextState;
 				break;
+			case TURNING_LEFT:
+				::g_pThePlayerGO->currentState = theNextState;
+				break;
+			case TURNING_RIGHT:
+				::g_pThePlayerGO->currentState = theNextState;
+				break;
 			case RUNNING:
 				//if( nextAnimation == WALK_FORWARD ||
 				//	nextAnimation == JUMP ||
@@ -296,19 +299,16 @@ void move_player()
 	switch( ::g_pThePlayerGO->currentState )
 	{
 		case DEFAULT:
-			std::cout << "Base ";
 			updateCurrentAnimation( eAnimationType::BASE );
 			break;
 		case JUMPING_STATIC :
 			if( isFinished )
 			{
-				std::cout << "Base ";
 				::g_pThePlayerGO->currentState = eGOState::DEFAULT;
-				updateCurrentAnimation( eAnimationType::BASE );
+				updateCurrentAnimation( eAnimationType::BASE );			
 			}
 			else
 			{
-				std::cout << "Jump ";
 				updateCurrentAnimation( eAnimationType::JUMP, false );
 			}
 			break;
@@ -316,51 +316,59 @@ void move_player()
 		case JUMPING_LONG :
 			if( isFinished )
 			{
-				std::cout << "Base ";
-				::g_pThePlayerGO->currentState = eGOState::DEFAULT;
-				updateCurrentAnimation( eAnimationType::BASE );
+				if( ::g_pThePlayerGO->bIsWalking )
+				{
+					::g_pThePlayerGO->currentState = eGOState::WALKING_FORWARD;
+					updateCurrentAnimation( eAnimationType::WALK_FORWARD );
+				}
+				else if( ::g_pThePlayerGO->bIsRunning )
+				{
+					::g_pThePlayerGO->currentState = eGOState::RUNNING;
+					updateCurrentAnimation( eAnimationType::RUN );
+				}
+				else
+				{
+					::g_pThePlayerGO->currentState = eGOState::DEFAULT;
+					updateCurrentAnimation( eAnimationType::BASE );
+				}
 			}
 			else
 			{
-				std::cout << "Jump ";
 				updateCurrentAnimation( eAnimationType::FORWARD_JUMP, false );
 			}
 			break;
 
 		case STRAFING_LEFT:
-			std::cout << "StrafeL ";
 			updateCurrentAnimation( eAnimationType::STRAFE_LEFT );
 			break;
 		case STRAFING_RIGHT:
-			std::cout << "StrafeR ";
 			updateCurrentAnimation( eAnimationType::STRAFE_RIGHT );
 			break;
 		case MOVING_LEFT:
-			std::cout << "MoveL ";
 			updateCurrentAnimation( eAnimationType::MOVE_LEFT );
 			break;
 		case MOVING_RIGHT:
-			std::cout << "MoveR ";
 			updateCurrentAnimation( eAnimationType::MOVE_RIGHT );
 			break;
+		case TURNING_LEFT:
+			updateCurrentAnimation( eAnimationType::TURN_LEFT);
+			break;
+		case TURNING_RIGHT:
+			updateCurrentAnimation( eAnimationType::TURN_RIGHT );
+			break;
 		case RUNNING:
-			std::cout << "Run ";
 			updateCurrentAnimation( eAnimationType::RUN );
 			break;
 		case WALKING_FORWARD:
-			std::cout << "WalkF ";
 			updateCurrentAnimation( eAnimationType::WALK_FORWARD );
 			break;
 		case WALKING_BACKWARD:
-			std::cout << "WalkB ";
 			updateCurrentAnimation( eAnimationType::WALK_BACKWARD );
 			break;
 		case DOING_ACTION:
-			std::cout << "Action ";
 			updateCurrentAnimation( eAnimationType::ACTION, false );
 			break;
 		case DOING_NOTHING:
-			std::cout << "None ";
 			updateCurrentAnimation( eAnimationType::NOTHING );
 			break;
 		default:
@@ -380,31 +388,51 @@ void move_player()
 	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.right * ::g_pThePlayerGO->scale;
 
+		movement = ::g_pThePlayerGO->getRightVector() * -0.01f;
+		::g_pThePlayerGO->vel += movement;
+
+		std::cout << "Mov.Vec: "
+			<< movement.x << ", "
+			<< movement.y << ", "
+			<< movement.z << "  Inic.Vel: "
+			<< ::g_pThePlayerGO->vel.x << ", "
+			<< ::g_pThePlayerGO->vel.y << ", "
+			<< ::g_pThePlayerGO->vel.z << "  ";
+
+		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
+		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
+		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
+
+		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
+			abs( ::g_pThePlayerGO->vel.y ) +
+			abs( ::g_pThePlayerGO->vel.z );
+		if( totalVelocity > maxSpeed )
+		{
+			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
+		}
+
+		std::cout << "Final.Vel: "
+			<< ::g_pThePlayerGO->vel.x << ", "
+			<< ::g_pThePlayerGO->vel.y << ", "
+			<< ::g_pThePlayerGO->vel.z << std::endl;
+
+	}
+	else if( ::g_pThePlayerGO->currentState == eGOState::MOVING_LEFT ||
+		::g_pThePlayerGO->currentState == eGOState::STRAFING_LEFT )
+	{
+		float maxSpeed = ::g_pThePlayerGO->mySpeed.left * ::g_pThePlayerGO->scale;
+
 		movement = ::g_pThePlayerGO->getRightVector() * 0.01f;
 
 		::g_pThePlayerGO->vel += movement;
 
-		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
-		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
-		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
-
-		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
-			abs( ::g_pThePlayerGO->vel.y ) +
-			abs( ::g_pThePlayerGO->vel.z );
-		if( totalVelocity > maxSpeed )
-		{
-			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
-		}
-
-	}
-	if( ::g_pThePlayerGO->currentState == eGOState::MOVING_LEFT ||
-		::g_pThePlayerGO->currentState == eGOState::STRAFING_LEFT )
-	{
-		float maxSpeed = ::g_pThePlayerGO->mySpeed.right * ::g_pThePlayerGO->scale;
-
-		movement = ::g_pThePlayerGO->getRightVector() * 0.01f;
-
-		::g_pThePlayerGO->vel -= movement;
+		std::cout << "Mov.Vec: "
+			<< movement.x << ", "
+			<< movement.y << ", "
+			<< movement.z << "  Inic.Vel: "
+			<< ::g_pThePlayerGO->vel.x << ", "
+			<< ::g_pThePlayerGO->vel.y << ", "
+			<< ::g_pThePlayerGO->vel.z << "  ";
 
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
@@ -417,6 +445,11 @@ void move_player()
 		{
 			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
 		}
+
+		std::cout << "Final.Vel: "
+			<< ::g_pThePlayerGO->vel.x << ", "
+			<< ::g_pThePlayerGO->vel.y << ", "
+			<< ::g_pThePlayerGO->vel.z << std::endl;
 
 	}
 	else if( ::g_pThePlayerGO->currentState == eGOState::WALKING_FORWARD ||
@@ -477,10 +510,11 @@ void move_player()
 	}
 	::g_pThePlayerGO->position += ::g_pThePlayerGO->vel;
 
-	//if( ::g_pThePlayerGO->currentState == TURN_RIGHT )
-	//	::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.05f, 0.0f ) );
-	//if( ::g_pThePlayerGO->currentState == TURN_LEFT )
-	//	::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.05f, 0.0f ) );
+	if( ::g_pThePlayerGO->currentState == TURNING_RIGHT )
+		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.01f, 0.0f ) );
+	if( ::g_pThePlayerGO->currentState == TURNING_LEFT )
+		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.01f, 0.0f ) );
+		
 
 	return;
 }
@@ -767,29 +801,14 @@ int main( void )
 	glGenBuffers( 1, &NUB_Buffer_1_ID );
 	glBindBuffer( GL_UNIFORM_BUFFER, NUB_Buffer_1_ID );
 
-
-	
-
 	::g_pLightManager = new cLightManager();
 
-	::g_pLightManager->CreateLights( g_NUMBER_OF_LIGHTS );	// There are 10 lights in the shader
+	::g_pLightManager->CreateLights( g_NUMBER_OF_LIGHTS );
 
 	// Change Other lights parameters==========================
 	{
 		::g_pLightManager->vecLights[0].position = glm::vec3( 50.0f, 50.0f, 50.0f );
-		::g_pLightManager->vecLights[0].attenuation.y = 0.03f;	// Linear
-		//::g_pLightManager->vecLights[0].attenuation.y = 0.6f;		// Change the linear attenuation
-		//::g_pLightManager->vecLights[0].attenuation.z = 0.005f;
-
-		::g_pLightManager->vecLights[1].position = glm::vec3( 50.0f, -50.0f, 50.0f );
-		//::g_pLightManager->vecLights[1].attenuation.y = 0.02f;	// Linear
-
-		::g_pLightManager->vecLights[2].position = glm::vec3( -50.0f, -50.0f, 50.0f );
-		::g_pLightManager->vecLights[1].attenuation.y = 0.01f;	// Linear
-
-		::g_pLightManager->vecLights[3].position = glm::vec3( -50.0f, 50.0f, 50.0f );
-		//::g_pLightManager->vecLights[1].attenuation.y = 0.0f;	// Linear
-		
+		::g_pLightManager->vecLights[0].attenuation.y = 0.03f;	// Linear		
 	}
 	//=========================================================
 	::g_pLightManager->LoadShaderUniformLocations( currentProgID );
@@ -1110,193 +1129,154 @@ glm::vec3 GetRandomPosition()
 
 	return newPosition;
 }
-
-//void newPlayerGO()
+//
+////Load objects.txt
+//void loadObjectsFile( std::string fileName )
 //{
-//	// Create a new GO
-//	cGameObject* pTempGO3 = new cGameObject();
+//	//sGOparameters sGOpar;
+//	std::vector <sGOparameters> allObjects;
 //
-//	cMesh theBallMesh;
-//	::g_pVAOManager->lookupMeshFromName( "rick", theBallMesh );
-//	
-//	pTempGO3->meshName = "rick";
-//	pTempGO3->diffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-//	
-//	pTempGO3->position = glm::vec3( 0.0f, 0.0f, 0.0f );
-//	pTempGO3->prevPosition = pTempGO3->position;
-//	pTempGO3->scale = 1.0f;
-//	pTempGO3->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-//	pTempGO3->vel = glm::vec3( 0.0f );
-//	pTempGO3->friendlyName = "player";
-//	pTempGO3->typeOfObject = SPHERE;
-//	pTempGO3->bIsUpdatedInPhysics = true;
-//	pTempGO3->mass = 0.1;
-//	pTempGO3->inverseMass = 1.0f / pTempGO3->mass;
+//	std::ifstream objectsFile( fileName );
+//	if( !objectsFile.is_open() )
+//	{	// File didn't open...
+//		std::cout << "Can't find config file" << std::endl;
+//		std::cout << "Using defaults" << std::endl;
+//	}
+//	else
+//	{	// File DID open, so loop through the file and pushback to structure
+//		while( !objectsFile.eof() && objectsFile.is_open() ) {
+//			allObjects.push_back( parseObjLine( objectsFile ) );
+//		}
+//		objectsFile.close();  //Closing "costfile.txt"
+//	}
 //
-//	pTempGO3->radius = theBallMesh.maxExtent / 2;
+//	for( int index = 0; index != allObjects.size(); index++ )
+//	{
+//		// Check, Number of Objects must be at least 1
+//		if( allObjects[index].nObjects == 0 ) allObjects[index].nObjects = 1;
 //
-//	//pTempGO3->textureBlend[0] = 1.0f;
-//	//pTempGO3->textureNames[0] = "rick_texture.bmp";
+//		// Create the number of gameObjects specified in the file for each line 
+//		for( int i = 0; i != allObjects[index].nObjects; i++ )
+//		{
+//			// Create a new GO
+//			cGameObject* pTempGO = new cGameObject();
 //
-//	pTempGO3->type = eTypeOfGO::CHARACTER;
-//	pTempGO3->team = eTeam::PLAYER;
-//	pTempGO3->enemyType = eEnemyType::UNAVAIABLE;
-//	pTempGO3->range = 4.0f;
-//	pTempGO3->maxVel = 0.05f;
-//	pTempGO3->health = 100.0f;
+//			pTempGO->meshName = allObjects[index].meshname; // Set the name of the mesh
 //
-//	::g_vecGameObjects.push_back( pTempGO3 );
-//	::g_GameObjNumber = ::g_vecGameObjects.size() - 1;
+//			//pTempGO->diffuseColour = glm::vec4( 0.5f, 0.5f, 0.5f, 1.0f );
+//			pTempGO->diffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
+//			//pTempGO->rotation = glm::vec3( 0.0f );
+//			pTempGO->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 //
+//
+//			// SOME OBJECTS ARE RANDOMLY PLACED WHEN RANDOM=TRUE ON FILE
+//			if( allObjects[index].random == "true" )
+//			{
+//				pTempGO->position.x = generateRandomNumber( -allObjects[index].rangeX, allObjects[index].rangeX );
+//				pTempGO->position.y = generateRandomNumber( -allObjects[index].rangeY, allObjects[index].rangeY );
+//				pTempGO->position.z = generateRandomNumber( -allObjects[index].rangeZ, allObjects[index].rangeZ );
+//				pTempGO->scale = allObjects[index].rangeScale;
+//			}
+//			else
+//			{   // position and scale are fixed
+//				pTempGO->position.x = allObjects[index].x;
+//				pTempGO->position.y = allObjects[index].y;
+//				pTempGO->position.z = allObjects[index].z;
+//				pTempGO->scale = allObjects[index].scale;
+//			}
+//			// NO VELOCITY
+//			pTempGO->vel = glm::vec3( 0.0f );
+//
+//			if( pTempGO->meshName == "rick" )
+//			{
+//				//pTempGO->textureNames[0] = "rick_texture.bmp";
+//				//pTempGO->textureBlend[0] = 1.0f;
+//				pTempGO->type = eTypeOfGO::CHARACTER;
+//				pTempGO->team = eTeam::PLAYER;
+//				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
+//			}
+//
+//			else if( pTempGO->meshName == "scary" )
+//			{
+//				//pTempGO->textureNames[0] = "scary.bmp";
+//				//pTempGO->textureBlend[0] = 1.0f;
+//				pTempGO->type = eTypeOfGO::CHARACTER;
+//				pTempGO->team = eTeam::ENEMY;
+//				pTempGO->behaviour = eBehaviour::ANGRY;
+//				pTempGO->range = 6.0f;
+//				pTempGO->health = 100.0f;
+//				pTempGO->maxVel = 1.5f;
+//			}
+//
+//			else if( pTempGO->meshName == "morty" )
+//			{
+//				//pTempGO->textureNames[0] = "morty.bmp";
+//				//pTempGO->textureBlend[0] = 1.0f;
+//				pTempGO->type = eTypeOfGO::CHARACTER;
+//				pTempGO->team = eTeam::ENEMY;
+//				pTempGO->behaviour = eBehaviour::FOLLOWER;
+//				pTempGO->range = 8.0f;
+//				pTempGO->health = 100.0f;
+//				pTempGO->maxVel = 1.0f;
+//			}
+//				
+//			else if( pTempGO->meshName == "meeseeks" )
+//			{
+//				//pTempGO->textureNames[0] = "meeseeks.bmp";
+//				//pTempGO->textureBlend[0] = 1.0f;
+//				pTempGO->type = eTypeOfGO::CHARACTER;
+//				pTempGO->team = eTeam::ENEMY;
+//				pTempGO->behaviour = eBehaviour::CURIOUS;
+//				pTempGO->range = 6.0f;
+//				pTempGO->health = 100.0f;
+//				pTempGO->maxVel = 1.5f;
+//			}
+//				
+//			else if( pTempGO->meshName == "circle" )
+//			{
+//				//pTempGO->textureNames[0] = "white.bmp";
+//				//pTempGO->textureBlend[0] = 1.0f;
+//				pTempGO->type = eTypeOfGO::OTHER;
+//				pTempGO->team = eTeam::NONE;
+//				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
+//			}
+//				
+//			else if( pTempGO->meshName == "terrain" )
+//			{
+//				//pTempGO->textureNames[0] = "moon.bmp";
+//				//pTempGO->textureBlend[0] = 1.0f;
+//				pTempGO->type = eTypeOfGO::TERRAIN;
+//				pTempGO->team = eTeam::NONE;
+//				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
+//			}
+//			
+//
+//			
+//			
+//			::g_vecGameObjects.push_back( pTempGO );
+//		}
+//	}
 //}
 
-//Load objects.txt
-void loadObjectsFile( std::string fileName )
-{
-	//sGOparameters sGOpar;
-	std::vector <sGOparameters> allObjects;
-
-	std::ifstream objectsFile( fileName );
-	if( !objectsFile.is_open() )
-	{	// File didn't open...
-		std::cout << "Can't find config file" << std::endl;
-		std::cout << "Using defaults" << std::endl;
-	}
-	else
-	{	// File DID open, so loop through the file and pushback to structure
-		while( !objectsFile.eof() && objectsFile.is_open() ) {
-			allObjects.push_back( parseObjLine( objectsFile ) );
-		}
-		objectsFile.close();  //Closing "costfile.txt"
-	}
-
-	for( int index = 0; index != allObjects.size(); index++ )
-	{
-		// Check, Number of Objects must be at least 1
-		if( allObjects[index].nObjects == 0 ) allObjects[index].nObjects = 1;
-
-		// Create the number of gameObjects specified in the file for each line 
-		for( int i = 0; i != allObjects[index].nObjects; i++ )
-		{
-			// Create a new GO
-			cGameObject* pTempGO = new cGameObject();
-
-			pTempGO->meshName = allObjects[index].meshname; // Set the name of the mesh
-
-			//pTempGO->diffuseColour = glm::vec4( 0.5f, 0.5f, 0.5f, 1.0f );
-			pTempGO->diffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-			//pTempGO->rotation = glm::vec3( 0.0f );
-			pTempGO->overwrtiteQOrientationFromEuler( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-
-
-			// SOME OBJECTS ARE RANDOMLY PLACED WHEN RANDOM=TRUE ON FILE
-			if( allObjects[index].random == "true" )
-			{
-				pTempGO->position.x = generateRandomNumber( -allObjects[index].rangeX, allObjects[index].rangeX );
-				pTempGO->position.y = generateRandomNumber( -allObjects[index].rangeY, allObjects[index].rangeY );
-				pTempGO->position.z = generateRandomNumber( -allObjects[index].rangeZ, allObjects[index].rangeZ );
-				pTempGO->scale = allObjects[index].rangeScale;
-			}
-			else
-			{   // position and scale are fixed
-				pTempGO->position.x = allObjects[index].x;
-				pTempGO->position.y = allObjects[index].y;
-				pTempGO->position.z = allObjects[index].z;
-				pTempGO->scale = allObjects[index].scale;
-			}
-			// NO VELOCITY
-			pTempGO->vel = glm::vec3( 0.0f );
-
-			if( pTempGO->meshName == "rick" )
-			{
-				//pTempGO->textureNames[0] = "rick_texture.bmp";
-				//pTempGO->textureBlend[0] = 1.0f;
-				pTempGO->type = eTypeOfGO::CHARACTER;
-				pTempGO->team = eTeam::PLAYER;
-				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
-			}
-
-			else if( pTempGO->meshName == "scary" )
-			{
-				//pTempGO->textureNames[0] = "scary.bmp";
-				//pTempGO->textureBlend[0] = 1.0f;
-				pTempGO->type = eTypeOfGO::CHARACTER;
-				pTempGO->team = eTeam::ENEMY;
-				pTempGO->behaviour = eBehaviour::ANGRY;
-				pTempGO->range = 6.0f;
-				pTempGO->health = 100.0f;
-				pTempGO->maxVel = 1.5f;
-			}
-
-			else if( pTempGO->meshName == "morty" )
-			{
-				//pTempGO->textureNames[0] = "morty.bmp";
-				//pTempGO->textureBlend[0] = 1.0f;
-				pTempGO->type = eTypeOfGO::CHARACTER;
-				pTempGO->team = eTeam::ENEMY;
-				pTempGO->behaviour = eBehaviour::FOLLOWER;
-				pTempGO->range = 8.0f;
-				pTempGO->health = 100.0f;
-				pTempGO->maxVel = 1.0f;
-			}
-				
-			else if( pTempGO->meshName == "meeseeks" )
-			{
-				//pTempGO->textureNames[0] = "meeseeks.bmp";
-				//pTempGO->textureBlend[0] = 1.0f;
-				pTempGO->type = eTypeOfGO::CHARACTER;
-				pTempGO->team = eTeam::ENEMY;
-				pTempGO->behaviour = eBehaviour::CURIOUS;
-				pTempGO->range = 6.0f;
-				pTempGO->health = 100.0f;
-				pTempGO->maxVel = 1.5f;
-			}
-				
-			else if( pTempGO->meshName == "circle" )
-			{
-				//pTempGO->textureNames[0] = "white.bmp";
-				//pTempGO->textureBlend[0] = 1.0f;
-				pTempGO->type = eTypeOfGO::OTHER;
-				pTempGO->team = eTeam::NONE;
-				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
-			}
-				
-			else if( pTempGO->meshName == "terrain" )
-			{
-				//pTempGO->textureNames[0] = "moon.bmp";
-				//pTempGO->textureBlend[0] = 1.0f;
-				pTempGO->type = eTypeOfGO::TERRAIN;
-				pTempGO->team = eTeam::NONE;
-				pTempGO->behaviour = eBehaviour::UNAVAIABLE;
-			}
-			
-
-			
-			
-			::g_vecGameObjects.push_back( pTempGO );
-		}
-	}
-}
-
-// Parse the file line to fit into the structure
-sGOparameters parseObjLine( std::ifstream &source ) {
-
-	sGOparameters sGOpar;
-
-	//Scanning a line from the file
-	source >> sGOpar.meshname >> sGOpar.nObjects
-		>> sGOpar.x >> sGOpar.y >> sGOpar.z >> sGOpar.scale
-		>> sGOpar.random
-		>> sGOpar.rangeX >> sGOpar.rangeY >> sGOpar.rangeZ
-		>> sGOpar.rangeScale;
-
-
-	return sGOpar;
-}
+//// Parse the file line to fit into the structure
+//sGOparameters parseObjLine( std::ifstream &source ) {
+//
+//	sGOparameters sGOpar;
+//
+//	//Scanning a line from the file
+//	source >> sGOpar.meshname >> sGOpar.nObjects
+//		>> sGOpar.x >> sGOpar.y >> sGOpar.z >> sGOpar.scale
+//		>> sGOpar.random
+//		>> sGOpar.rangeX >> sGOpar.rangeY >> sGOpar.rangeZ
+//		>> sGOpar.rangeScale;
+//
+//
+//	return sGOpar;
+//}
 
 //Load meshlist.txt
-void loadMeshesFile( std::string fileName, GLint ShaderID )
-{
+//void loadMeshesFile( std::string fileName, GLint ShaderID )
+//{
 	//std::vector <sMeshparameters> allMeshes;
 
 	//std::ifstream objectsFile( fileName );
@@ -1338,18 +1318,18 @@ void loadMeshesFile( std::string fileName, GLint ShaderID )
 	//		}
 	//	}		
 	//}
-}
+//}
 
-// Parse the file line to fit into the structure
-sMeshparameters parseMeshLine( std::ifstream &source ) {
-
-	sMeshparameters sMeshpar;
-
-	//Scanning a line from the file
-	source >> sMeshpar.meshname >> sMeshpar.meshFilename;
-
-	return sMeshpar;
-}
+//// Parse the file line to fit into the structure
+//sMeshparameters parseMeshLine( std::ifstream &source ) {
+//
+//	sMeshparameters sMeshpar;
+//
+//	//Scanning a line from the file
+//	source >> sMeshpar.meshname >> sMeshpar.meshFilename;
+//
+//	return sMeshpar;
+//}
 
 void loadLightObjects()
 {
