@@ -82,9 +82,9 @@ uniform int theLightId;
 
 uniform bool bIsDebugWireFrameObject;
 
-// For "Chromatic Aberration"
-uniform float CAoffset;// = 0.02f; 
-
+// For Drunk Effect
+uniform float DrunkOffset;
+uniform int DrunkEffect;
 
 // Note: this CAN'T be an array (sorry). See 3D texture array
 uniform sampler2D texSamp2D00;		// Represents a 2D image
@@ -131,6 +131,7 @@ uniform int renderPassNumber;			// Now there are 3 passes, 0 to 2
 //uniform sampler2D tex2ndPassSamp2D;		// Offscreen texture for 2nd pass
 uniform sampler2D texFBOColour2D;
 uniform sampler2D texFBONormal2D;
+//uniform sampler2D texFBODepth2D;	//ADDED
 uniform sampler2D texFBOVertexWorldPos2D;
 
 uniform sampler2D fullRenderedImage2D;
@@ -148,7 +149,6 @@ vec3 calcLightColour( in vec3 vecNormal,
                       in vec4 matSpecular );
 /*****************************************************/
 
-
 const float CALCULATE_LIGHTING = 1.0f;
 const float DONT_CALCULATE_LIGHTING = 0.25f;
 
@@ -158,15 +158,12 @@ const int PASS_2_FULL_SCREEN_EFFECT_PASS = 2;
 
 void main()
 {	
-
-	//fragColourOut[0] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	//fragColourOut[1] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	fragOut.colour = vec4( 0.0f, 0.0f, 0.0f, 1.0f );
 	fragOut.normal = vec4( 0.0f, 0.0f, 0.0f, DONT_CALCULATE_LIGHTING );
 	fragOut.vertexWorldPos = vec4( 0.0f, 0.0f, 0.0f, 1.0f );
-
-	// if ( bIsSecondPass )
 	
+	//if ( renderPassNumber == 0 )	// THE FIRST PASS
+	//{
 	switch (renderPassNumber)
 	{
 	case PASS_0_G_BUFFER_PASS:	 // =0
@@ -174,13 +171,8 @@ void main()
 		// Is this a 'debug' wireframe object, i.e. no lighting, just use diffuse
 		if ( bIsDebugWireFrameObject )
 		{
-	//		fragColourOut[0].rgb = materialDiffuse.rgb;			//gl_FragColor.rgb
-	//		fragColourOut[0].a = materialDiffuse.a;				//gl_FragColor.a = 1.0f	
-	//		fragColourOut[0].rgb += vec3(0.0f, 0.0f, 1.0f);		
-	//		fragColourOut[0] * 1.5f;	// Room too bright
 			fragOut.colour.rgb = materialDiffuse.rgb;			//gl_FragColor.rgb
 			fragOut.colour.a = materialDiffuse.a;				//gl_FragColor.a = 1.0f	
-	//		fragOut.colour.rgb *= 1.5f;	// Room too bright
 
 			fragOut.vertexWorldPos.xyz = fVecWorldPosition.xyz;
 			fragOut.normal.a = DONT_CALCULATE_LIGHTING;
@@ -196,9 +188,7 @@ void main()
 			// Note we are using the normals of our skybox object
 			//	to determine the point on the inside of the box
 			vec4 skyRGBA = texture( texSampCube00, fVertNormal.xyz );
-			
-	//		fragColourOut.rgb += vec3(0.0f, 1.0f, 0.0f);
-	//		fragColourOut[0] = vec4(skyRGBA.rgb, 1.0f);		//gl_FragColor = skyRGBA;
+		
 			fragOut.colour = vec4(skyRGBA.rgb, 1.0f);
 
 			fragOut.vertexWorldPos.xyz = fVecWorldPosition.xyz;
@@ -206,7 +196,7 @@ void main()
 
 			return;	
 		}
-		
+	
 	// uniform bool isReflectRefract;
 	// uniform float reflectBlendRatio;		// How much reflection (0-1)
 	// uniform float refractBlendRatio;		// How much refraction (0-1)
@@ -214,17 +204,14 @@ void main()
 		if ( isReflectRefract )
 		{			
 			// Have "eyePosition" (camera eye) in WORLD space
-			
+		
 			// reFLECTion value 
 			vec3 vecReflectEyeToVertex = fVecWorldPosition - perFramNUB.eyePosition;
 			vecReflectEyeToVertex = normalize(vecReflectEyeToVertex);
 			vec3 vecReflect = reflect( vecReflectEyeToVertex, fVertNormal.xyz );
 			// Look up colour for reflection
-	//		vec4 rgbReflection = texture( texSampCube00, vecReflect );
 			vec4 rgbReflection = texture( texSampCube00, fVertNormal.xyz );
-
-		
-			
+	
 			vec3 vecReFRACT_EyeToVertex = perFramNUB.eyePosition - fVecWorldPosition;
 			vecReFRACT_EyeToVertex = normalize(vecReFRACT_EyeToVertex);				
 			vec3 vecRefract = refract( vecReFRACT_EyeToVertex, fVertNormal.xyz, 
@@ -232,28 +219,25 @@ void main()
 			// Look up colour for reflection
 			vec4 rgbRefraction = texture( texSampCube00, vecRefract );
 			
-			
 			// Mix the two, based on how reflective the surface is
-		//	fragColourOut.r = 1.0f;
-		//	fragColourOut[0] = (rgbReflection * reflectBlendRatio) + 
 			fragOut.colour = (rgbReflection * reflectBlendRatio) + 
 							 (rgbRefraction * refractBlendRatio);
-			
+		
 			fragOut.vertexWorldPos.xyz = fVecWorldPosition.xyz;
 			fragOut.normal.a = DONT_CALCULATE_LIGHTING;
 			return;	
 		}	
-		
+	
 		// ***********************************************************************
 		// This is the start of our "normal" "things that are lit" 1st pass
 		// (the "geometry" pass - writing the geometry and other info)
 
 		vec3 matDiffuse = vec3(0.0f, 0.0f, 0.0f);
-		
+	
 		// ****************************************************************/
 		//uniform sampler2D myAmazingTexture00;
 		vec2 theUVCoords = fUV_X2.xy;		// use UV #1 of vertex
-			
+		
 		vec4 texCol00 = texture( texSamp2D00, theUVCoords.xy );
 		vec4 texCol01 = texture( texSamp2D01, theUVCoords.xy );
 		vec4 texCol02 = texture( texSamp2D02, theUVCoords.xy );
@@ -273,8 +257,8 @@ void main()
 						  (texCol05.rgb * texBlend05) +
 						  (texCol06.rgb * texBlend06) +
 						  (texCol07.rgb * texBlend07);
-			
 		
+	
 		// We will look at specular or gloss maps later, 
 		// 	but making the specular white is fine
 		vec4 matSpecular = vec4(1.0f, 1.0f, 1.0f, 64.0f);
@@ -286,7 +270,7 @@ void main()
 		vec3 ambientContribution = matDiffuse.rgb * ambientToDiffuseRatio;
 		//fragColourOut[0].rgb += ambientContribution.rgb;
 		fragOut.colour.rgb += ambientContribution.rgb;
-		
+	
 		// Transparency value (for alpha blending)
 		fragOut.colour.a = materialDiffuse.a;
 
@@ -294,204 +278,178 @@ void main()
 
 		fragOut.vertexWorldPos.xyz = fVecWorldPosition.xyz;
 
-		fragOut.normal.a = CALCULATE_LIGHTING;
-	//	fragOut.normal.a = -1.0f;
+		// HACK TO HAVE ONLY THE COLOR AT THE SCREEN
+		//fragOut.normal.a = CALCULATE_LIGHTING;
+		fragOut.normal.a = DONT_CALCULATE_LIGHTING;
+		fragOut.colour.rgb = matDiffuse.rgb;
 
-		// NO lighting pass here (there WOULD be if this were "forward renderered")
-		// ****************************************************************/	
-	//	for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
-	//	{
-	//		fragOut.colour.rgb += calcLightColour( fVertNormal, 					
-	//		                                       fVecWorldPosition, 
-	//		                                       index, 
-	//		                                       matDiffuse, 
-	//		                                       materialSpecular );
-	//	}
+		////NO lighting pass here (there WOULD be if this were "forward renderered")
+		////****************************************************************/	
+		//for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
+		//{
+		//	fragOut.colour.rgb += calcLightColour( fVertNormal, 					
+		//		                                    fVecWorldPosition, 
+		//		                                    index, 
+		//		                                    matDiffuse, 
+		//		                                    materialSpecular );
+		//}
 
+		//return;
+		break;
+	//}
 
-	//	return;
-		
-		break;	// end of PASS_0_G_BUFFER_PASS (0):
-		
+	//else if ( renderPassNumber == 1 )		// THIS IS THE SECOND PASS
+	//{
 	case PASS_1_DEFERRED_RENDER_PASS:		// (1)
 	
-		//vec2 textCoords = vec2( gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight );
-		//fragOut.colour.rgb = texture( texFBOVertexWorldPos2D, textCoords).rgb;
-		//fragOut.colour.a = 1.0f; 
-
-		//uniform sampler2D texFBOColour2D;
-		//uniform sampler2D texFBONormal2D;
-		//uniform sampler2D texFBOVertexWorldPos2D;
-
 		vec2 textCoords = vec2( gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight );
 
 		vec3 theColourAtThisPixel = texture( texFBOColour2D, textCoords).rgb;
 		vec4 theNormalAtThisPixel = texture( texFBONormal2D, textCoords).rgba;
 		vec3 theVertLocWorldAtThisPixel = texture( texFBOVertexWorldPos2D, textCoords).rgb;
 
+		//vec4 theDepthAtThisPixel = texture( texFBODepth2D, textCoords).rgba;		//ADDED
+
 		if ( theNormalAtThisPixel.a != CALCULATE_LIGHTING )
 		{
 			// Return the colour as it is on the colour FBO
 			fragOut.colour.rgb = theColourAtThisPixel.rgb;
 			fragOut.colour.a = 1.0f;
-		}
-		else
-		{
-			// ELSE: do the lighting...
-			for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
-			{
-				fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel.xyz, 					
-													   theVertLocWorldAtThisPixel, 
-													   index, 
-													   theColourAtThisPixel, 
-													   materialSpecular );
-			}
-		}// if ( theNormalAtThisPixel.a != CALCULATE_LIGHTING )
-
-		//fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel.xyz, 					
-		//										   theVertLocWorldAtThisPixel, 
-		//										   theLightId, 
-		//										   theColourAtThisPixel, 
-		//										   materialSpecular );
 
 
-		//fragOut.colour.r += theNormalAtThisPixel.a;
+			//// ==============  Edge Detection  ===============
+			//float dx = 0.1 / screenWidth;
+			//float dy = 0.1 / screenHeight;
 
-		fragOut.colour.rgb *= 1.5f;		// dim projector
-		fragOut.colour.a = 1.0f;
-		
-		// "2nd pass effects"
-		
-// **************************************************************************
-		// Make it  black and white (well, "greyscale"
-//		float Y = (0.2126 * fragOut.colour.r) + 
-//		          (0.7152 * fragOut.colour.g) + 
-//				  (0.0722 * fragOut.colour.b);
-//		fragOut.colour.rgb = vec3(Y,Y,Y);
-// **************************************************************************
+			////vec3 center = sampleNrm( uTexNormals, vec2(0.0, 0.0) );
+			//vec3 center = texture( texFBONormal2D, vec2(textCoords.x, textCoords.y )).rgb;
 
+			//// sampling just these 3 neighboring fragments keeps the outline thin.				
+			//vec3 top = texture( texFBONormal2D, vec2(textCoords.x, textCoords.y + dy )).rgb;
+			//vec3 topRight = texture( texFBONormal2D, vec2(textCoords.x + dx, textCoords.y + dy )).rgb;
+			//vec3 right = texture( texFBONormal2D, vec2(textCoords.x + dx, textCoords.y )).rgb;
 
-// **************************************************************************
-		////fragOut.colour.rgb *= 0.001f;	// Make it black
-		
-		//float CAoffset = 0.02f; 
-		
-		//float colR = texture( texFBOColour2D, 
-		//                      vec2(textCoords.x + 0, textCoords.y + CAoffset) ).r;
-							  
-		//float colG = texture( texFBOColour2D, 
-		//                      vec2(textCoords.x + CAoffset, textCoords.y + CAoffset) ).g;
-							  
-		//float colB = texture( texFBOColour2D, 
-		//                      vec2(textCoords.x - CAoffset, textCoords.y - CAoffset) ).b;
-		
-		//vec3 theRGB = vec3( colR, colG, colB );	
-		
-		//fragOut.colour.rgb += theRGB;
-// **************************************************************************
+			//vec3 t = center - top;
+			//vec3 r = center - right;
+			//vec3 tr = center - topRight;
 
-// **************************************************************************
-		// Blurring the image
-		
-		float filterLimit = 0.0f;	
-		float filterStep = 0.001f;
-		int count = 0;
-		vec3 outColour = vec3(0.0f, 0.0f, 0.0f);
-		
-		float xMin = -( filterLimit * filterStep );
-		float xMax =  (filterLimit+1) * filterStep;
-		float yMin = -( filterLimit * filterStep );
-		float yMax = (filterLimit+1) * filterStep;
-	
-		//   *  *    *    *   *
-		//
-		//   *  *    *    *   *
-		//
-		//   *  *    X    *   *
-		// 
-		//   *  *    *    *   *
-		// 
-		//   *  *    *    *   *
-		
-		// Or you can do this, which looks identical 
-		//           * 
-		//           *  
-		//   *  *    X    *   *
-		//           * 
-		//           * 
-		
-		for ( float xOff = xMin; xOff < xMax; xOff += filterStep )
-		{
-			for ( float yOff = yMin; yOff < yMax; yOff += filterStep )
-			{
+			//t = abs( t );
+			//r = abs( r );
+			//tr = abs( tr );
 
-				vec2 sampOffset = vec2(xOff, yOff);
-							
-				outColour += texture( texFBOColour2D, textCoords + sampOffset ).rgb;
-				
-				count++;
-			}//for ( float yOff
-		}//for ( float xOff
+			//float n;
+			//n = max( n, t.x );
+			//n = max( n, t.y );
+			//n = max( n, t.z );
+			//n = max( n, r.x );
+			//n = max( n, r.y );
+			//n = max( n, r.z );
+			//n = max( n, tr.x );
+			//n = max( n, tr.y );
+			//n = max( n, tr.z );
 
-//		fragOut.colour.rgb *= 0.0001f;	// make "zero"
-//		fragOut.colour.rgb += ( outColour / float(count) );
+			//// threshold and scale.
+			//n = 1.0 - clamp( clamp((n * 2.0) - 0.8, 0.0, 1.0) * 1.5, 0.0, 1.0 );
+
+			//fragOut.colour.rgb = texture(texFBOColour2D, textCoords).rgb * (0.1 + 0.9*n);			
+			//// ==============  Edge Detection  ===============
 			
-		// **************************************************************************		
-	
-		break;	// end of pass PASS_1_DEFERRED_RENDER_PASS (1)
-	
-	case 2:
-	
-		// In this example, there is a single quad, that
-		//	is being drawn with the full, rendered buffer from the previous pass
-		fragOut.colour.rgb = texture( fullRenderedImage2D, fUV_X2.xy ).rgb;
-		fragOut.colour.a = 1.0f;
-	
-		break;	// end of pass PASS_2_FULL_SCREEN_EFFECT_PASS:
-	
-	case 3:		// (1)
+			// "2nd pass effects"		
+			// ****************************************************************
+			//// Make it  black and white (well, "greyscale"
+			//float Y = (0.2126 * fragOut.colour.r) + 
+			//          (0.7152 * fragOut.colour.g) + 
+			//		  (0.0722 * fragOut.colour.b);
+			//fragOut.colour.rgb = vec3(Y,Y,Y);
 
-		vec2 textCoords2 = vec2( gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight );
-
-		vec3 theColourAtThisPixel2 = texture( fullRenderedImage2D, fUV_X2.xy).rgb;
-		vec4 theNormalAtThisPixel2 = texture( texFBONormal2D, fUV_X2.xy).rgba;
-		vec3 theVertLocWorldAtThisPixel2 = texture( texFBOVertexWorldPos2D, fUV_X2.xy).rgb;
-
-		if ( theNormalAtThisPixel2.a != CALCULATE_LIGHTING )
-		{
-			// Return the colour as it is on the colour FBO
-			fragOut.colour.rgb = theColourAtThisPixel2.rgb;
-			fragOut.colour.a = 1.0f;
-		}
-		else
-		{
-			// ELSE: do the lighting...
-			for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
+			// ****************************************************************
+			// Drunk Offset
+			//float CAoffset = 0.01f; 
+			
+			if( DrunkEffect == 1 )
 			{
-				fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel2.xyz, 					
-													   theVertLocWorldAtThisPixel2, 
-													   index, 
-													   theColourAtThisPixel2, 
-													   materialSpecular );
+				vec3 FPixel = texture( texFBOColour2D, 
+									  vec2(textCoords.x + 0, textCoords.y + DrunkOffset) ).rgb;
+		
+							  
+				vec3 SPixel = texture( texFBOColour2D, 
+									  vec2(textCoords.x + DrunkOffset, textCoords.y + DrunkOffset) ).rgb;
+							  
+				vec3 TPixel = texture( texFBOColour2D, 
+									  vec2(textCoords.x - DrunkOffset, textCoords.y - DrunkOffset) ).rgb;
+		
+				fragOut.colour.rgb = fragOut.colour.rgb * 0.25f +
+									 FPixel.rgb * 0.25f +
+									 SPixel.rgb * 0.25f +
+									 TPixel.rgb * 0.25f;
 			}
-		}// if ( theNormalAtThisPixel.a != CALCULATE_LIGHTING )
+			return;
+		}
 
-		//fragOut.colour.rgb = texture( fullRenderedImage2D, fUV_X2.xy ).rgb;
-		//fragOut.colour.a = 1.0f;
+		// NOTE: I'M NOT CALCULATING LIGHTING AT ALL!!!
 
-		//Make it  black and white (well, "greyscale"
-		float Y = (0.2126 * fragOut.colour.r) + 
-		          (0.7152 * fragOut.colour.g) + 
-				  (0.0722 * fragOut.colour.b);
-		fragOut.colour.rgb = vec3(Y,Y,Y);
+		// ELSE: do the lighting...
+		// ****************************************************************
+		// NOW, in the 2nd pass, we do the lighting!!! 
+		for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
+		{
+			fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel.xyz, 					
+													theVertLocWorldAtThisPixel, 
+													index, 
+													theColourAtThisPixel, 
+													materialSpecular );
+		}
+
+		//fragOut.colour.rgb *= 1.5f;		// dim projector
+		fragOut.colour.a = 1.0f;
+
+		//return;
+		break;
+	//}
 	
-		break;	// end of pass PASS3
+	//else			// The Third Pass
+	//{
+	case PASS_2_FULL_SCREEN_EFFECT_PASS:	
+		
+		fragOut.colour.rgba = vec4( 1.0f );
 
-	}// switch (passNumber)
+		//vec2 textCoords2 = vec2( gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight );
+
+		//vec3 theColourAtThisPixel2 = texture( fullRenderedImage2D, fUV_X2.xy).rgb;
+		//vec4 theNormalAtThisPixel2 = texture( texFBONormal2D, fUV_X2.xy).rgba;
+		//vec3 theVertLocWorldAtThisPixel2 = texture( texFBOVertexWorldPos2D, fUV_X2.xy).rgb;
+
+		//if ( theNormalAtThisPixel2.a != CALCULATE_LIGHTING )
+		//{
+		//	// Return the colour as it is on the colour FBO
+		//	fragOut.colour.rgb = theColourAtThisPixel2.rgb;
+		//	fragOut.colour.a = 1.0f;
+		//}
+		//else
+		//{
+		//	// ELSE: do the lighting...
+		//	for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
+		//	{
+		//		fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel2.xyz, 					
+		//											   theVertLocWorldAtThisPixel2, 
+		//											   index, 
+		//											   theColourAtThisPixel2, 
+		//											   materialSpecular );
+		//	}
+		//}// if ( theNormalAtThisPixel.a != CALCULATE_LIGHTING )
+
+
+		//////Make it  black and white (well, "greyscale"
+		////float Y = (0.2126 * fragOut.colour.r) + 
+		////          (0.7152 * fragOut.colour.g) + 
+		////		  (0.0722 * fragOut.colour.b);
+		////fragOut.colour.rgb = vec3(Y,Y,Y);
+
+		//return;
+		break;
+	}
 	
-
-	return;
-}// main()
+}	// void main()
 
 // Inspired by Mike Bailey's Graphics Shader book
 // (when you see "half-vector", that's eye space)
@@ -590,8 +548,6 @@ vec3 calcLightColour( in vec3 vecNormal,
 		float vertSpotAngle = max(0.0f, dot( vecVtoLDirection, myLight[lightID].direction.xyz ));
 		// Is this withing the angle1?
 		
-//		float angleInsideCutCos = cos(myLight[lightID].typeParams.z);		// z angle1
-//		float angleOutsideCutCos = cos(myLight[lightID].typeParams.w);		// z angle2
 		float angleInsideCutCos = cos(myLight[lightID].typeParams.z);		// z angle1
 		float angleOutsideCutCos = cos(myLight[lightID].typeParams.w);		// z angle2
 		
@@ -622,3 +578,8 @@ vec3 calcLightColour( in vec3 vecNormal,
 	
 	return colour;
 }// vec3 calcLightColour(...) 
+
+
+
+
+

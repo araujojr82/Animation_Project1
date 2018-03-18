@@ -44,6 +44,7 @@
 
 #include "cFBO.h" 
 cFBO g_myFBO;
+cFBO g_myMirrorFBO;
 
 // The Game Boundaries:
 const float maxX = 15.0f;
@@ -68,6 +69,7 @@ std::vector< cGameObject* > g_vecGameObjects;
 
 cGameObject* g_pThePlayerGO = NULL;
 cGameObject* g_pSkyBoxObject = NULL;
+cGameObject* g_pMirrorObject = NULL;
 
 //cCamera* g_pTheCamera = NULL;
 cMouseCamera* g_pTheMouseCamera = NULL;
@@ -92,6 +94,15 @@ GLFWwindow* g_pGLFWWindow = NULL;
 
 bool g_bUseDeferred = true; // Switch between 1 pass or 2 passes...
 bool g_bIsSecondPass = false;
+const int RENDER_PASS_0 = 0;
+const int RENDER_PASS_1 = 1;
+const int RENDER_PASS_2 = 2;
+
+GLint g_renderID = 0;
+
+unsigned int g_drunkEffect = 0;
+float g_drunkOffset = 0.0f;
+float g_drunkOffsetChange = 0.0001f;
 
 // This contains the AABB grid for the terrain...
 //cAABBBroadPhase* g_terrainAABBBroadPhase = 0;
@@ -136,10 +147,6 @@ std::vector< pointTriangles > g_vecPoints;
 
 // Forward declare the Functions
 void loadConfigFile( std::string fileName, sWindowConfig& wConfig );
-sGOparameters parseObjLine( std::ifstream &source );
-void loadObjectsFile( std::string fileName );
-sMeshparameters parseMeshLine( std::ifstream &source );
-//void loadMeshesFile( std::string fileName, GLint ShaderID );
 void loadLightObjects();
 //void PhysicsStep( double deltaTime );
 void updateAllObjects( double deltaTime );
@@ -783,7 +790,7 @@ int main( void )
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "blue.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "white.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "orange.bmp", true );
-	//::g_pTextureManager->Create2DTextureFromBMPFile( "purple.bmp", true );
+	::g_pTextureManager->Create2DTextureFromBMPFile( "purple.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "gray.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "green.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "yellow.bmp", true );
@@ -847,6 +854,24 @@ int main( void )
 
 	}
 
+	// Create an FBO
+	//	if ( ! g_myFBO.init(width, height, error) )
+	if( !g_myMirrorFBO.init( 1920, 1080, error ) )
+	{
+		std::cout << "Mirror FBO error: " << error << std::endl;
+	}
+	else
+	{
+		std::cout << "Mirror FBO is good." << std::endl;
+		std::cout << "\tFBO ID = " << g_myMirrorFBO.ID << std::endl;
+		std::cout << "\tcolour texture ID = " << g_myMirrorFBO.colourTexture_0_ID << std::endl;
+		std::cout << "\tnormal texture ID = " << g_myMirrorFBO.normalTexture_1_ID << std::endl;
+
+		std::cout << "GL_MAX_COLOR_ATTACHMENTS = " << g_myMirrorFBO.getMaxColourAttachments() << std::endl;
+		std::cout << "GL_MAX_DRAW_BUFFERS = " << g_myMirrorFBO.getMaxDrawBuffers() << std::endl;
+
+	}
+
 	setWindowFullScreenOrWindowed( ::g_pGLFWWindow, ::g_IsWindowFullScreen );
 
 
@@ -877,8 +902,12 @@ int main( void )
 		if( !::g_bUseDeferred )
 		{
 			// Direct everything to the FBO
-			GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
-			glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			//GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
+			//glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			// Direct everything to the FBO
+			GLint renderPassNumber_LocID = glGetUniformLocation( sexyShaderID, "renderPassNumber" );
+			glUniform1i( renderPassNumber_LocID, RENDER_PASS_0 );
+
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 			// Clear colour AND depth buffer
 			g_myFBO.clearBuffers();
@@ -886,11 +915,45 @@ int main( void )
 			RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
 		}
 		else
-		{	// Direct everything to the FBO
-		
+		{	// Using the Deferred Renderer
+			
+			//// ##########################################
+			////g_myMirrorFBO
+			//
+			//// rotate the camera around (to mirror position)
+			//::g_pTheMouseCamera->Yaw += 180.0f; 
+			//::g_pTheMouseCamera->Pitch = -::g_pTheMouseCamera->Pitch;
+			//::g_pTheMouseCamera->ProcessMouseMovement( 0, 0, false );
+			//
+			//// Direct everything to the FBO		
+			//::g_bIsSecondPass = false;
+			////GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
+			////glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			//GLint renderPassNumber_LocID = glGetUniformLocation( sexyShaderID, "renderPassNumber" );
+			//glUniform1i( renderPassNumber_LocID, RENDER_PASS_0 );
+
+			//glBindFramebuffer( GL_FRAMEBUFFER, g_myMirrorFBO.ID );
+
+			//// Clear colour AND depth buffer
+			//g_myMirrorFBO.clearBuffers();
+
+			//RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
+
+			//// Revert the camera to correct position
+			//::g_pTheMouseCamera->Yaw -= 180.0f;
+			//::g_pTheMouseCamera->Pitch = -::g_pTheMouseCamera->Pitch;
+			//::g_pTheMouseCamera->ProcessMouseMovement( 0, 0, true );
+
+			//// ##########################################
+
+
+			// Direct everything to the FBO		
 			::g_bIsSecondPass = false;
-			GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
-			glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			//GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
+			//glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			GLint renderPassNumber_LocID = glGetUniformLocation( sexyShaderID, "renderPassNumber" );
+			glUniform1i( renderPassNumber_LocID, RENDER_PASS_0 );
+
 			glBindFramebuffer( GL_FRAMEBUFFER, g_myFBO.ID );
 			
 			// Clear colour AND depth buffer
@@ -898,15 +961,24 @@ int main( void )
 
 			RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
 
+
+			// -----------> The Second Pass
+			
 			// Render it again, but point the the FBO texture... 
 			::g_bIsSecondPass = true;
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+			
+			GLfloat	zero = 0.0f;							 //clearBuffers();
+			GLfloat one = 1.0f;								 //clearBuffers();
+			glClearBufferfv( GL_COLOR, 0, &zero );			 //clearBuffers();
+			glClearBufferfv( GL_DEPTH, 0, &one );			 //clearBuffers();
 
-			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+			//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 			::g_pShaderManager->useShaderProgram( "mySexyShader" );
 
-			glUniform1i( bIsSecondPassLocID, GL_TRUE );
+			//glUniform1i( bIsSecondPassLocID, GL_TRUE );
+			glUniform1i( renderPassNumber_LocID, RENDER_PASS_1 );
 
 			GLint texFBOColour2DTextureUnitID = 10;
 			GLint texFBOColour2DLocID = glGetUniformLocation( sexyShaderID, "texFBOColour2D" );
@@ -914,6 +986,10 @@ int main( void )
 			GLint texFBONormal2DLocID = glGetUniformLocation( sexyShaderID, "texFBONormal2D" );
 			GLint texFBOWorldPosition2DTextureUnitID = 12;
 			GLint texFBOWorldPosition2DLocID = glGetUniformLocation( sexyShaderID, "texFBOVertexWorldPos2D" );
+
+			//GLint texFBODepth2DTextureUnitID = 13;													   //ADDED
+			//GLint texFBODepth2DLocID = glGetUniformLocation( sexyShaderID, "texFBODepth2D" );		   //ADDED
+			
 
 			// Pick a texture unit... 
 			glActiveTexture( GL_TEXTURE0 + texFBOColour2DTextureUnitID );
@@ -928,6 +1004,10 @@ int main( void )
 			glBindTexture( GL_TEXTURE_2D, g_myFBO.vertexWorldPos_2_ID );
 			glUniform1i( texFBOWorldPosition2DLocID, texFBOWorldPosition2DTextureUnitID );
 
+			//glActiveTexture( GL_TEXTURE0 + texFBODepth2DTextureUnitID );				   //ADDED
+			//glBindTexture( GL_TEXTURE_2D, g_myFBO.depthTexture_ID );					   //ADDED
+			//glUniform1i( texFBODepth2DLocID, texFBODepth2DTextureUnitID );				   //ADDED
+
 			// Set the sampler in the shader to the same texture unit (20)
 
 			glfwGetFramebufferSize( ::g_pGLFWWindow, &width, &height );
@@ -937,10 +1017,51 @@ int main( void )
 			glUniform1f( screenWidthLocID, ( float )width );
 			glUniform1f( screenHeightLocID, ( float )height );
 
+			if( ::g_pThePlayerGO->friendlyName == "Rick" )
+			{// This if for Rick's Drunk Effect
+
+				::g_drunkEffect = 1;
+
+				if( ::g_drunkOffset >= 0.02f )
+					::g_drunkOffsetChange = -0.0001;
+				else if( ::g_drunkOffset <= -0.02f )
+					::g_drunkOffsetChange = 0.0001;
+
+				::g_drunkOffset += ::g_drunkOffsetChange;
+			}
+			else
+			{
+				::g_drunkEffect = 0;
+				::g_drunkOffset = 0.0f;
+			}
+			GLint DrunkOffset_LocID = glGetUniformLocation( sexyShaderID, "DrunkOffset" );
+			glUniform1f( DrunkOffset_LocID, ::g_drunkOffset );
+
+			GLint DrunkFlag_LocID = glGetUniformLocation( sexyShaderID, "DrunkEffect" );
+			glUniform1i( DrunkFlag_LocID, ::g_drunkEffect );	
+
 			std::vector< cGameObject* >  vecCopy2ndPass;
 			// Push back a SINGLE quad or GIANT triangle that fills the entire screen
-			vecCopy2ndPass.push_back( ::g_vecGameObjects[0] );
+			vecCopy2ndPass.push_back( ::g_pSkyBoxObject );
 			RenderScene( vecCopy2ndPass, ::g_pGLFWWindow, deltaTime );
+
+			// #################################################################
+			//glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+			//
+			//::g_pShaderManager->useShaderProgram( "mySexyShader" );
+
+			//glUniform1i( renderPassNumber_LocID, RENDER_PASS_2 );
+
+			//GLint fullRenderedImage2D_LocID = glGetUniformLocation( sexyShaderID, "fullRenderedImage2D" );
+
+			//glUniform1i( fullRenderedImage2D_LocID, 6 ); // g_renderID );
+
+			//std::vector< cGameObject* >  vecCopy2ndPass1;
+			//// Draw just the terrain as a test
+			////vecCopy2ndPass1.push_back( ::g_pSkyBoxObject );
+			//vecCopy2ndPass1.push_back( ::g_pMirrorObject );
+			//RenderScene( vecCopy2ndPass1, ::g_pGLFWWindow, deltaTime );
+			// #################################################################
 		}
 
 		//move_player( deltaTime );

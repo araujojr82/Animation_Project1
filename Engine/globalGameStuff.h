@@ -34,7 +34,7 @@ extern cLightManager*	g_pLightManager;	// (theMain.cpp)
 											// Super basic physics update function
 //void PhysicsStep( double deltaTime );
 
-const std::string PLAYERNAME = "player";		// Now that we have a lookup
+const std::string PLAYERNAME = "Morty";		// Now that we have a lookup
 
 extern cGameObject* g_pThePlayerGO;
 

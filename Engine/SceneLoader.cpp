@@ -16,6 +16,7 @@
 extern std::vector< cGameObject* >  g_vecGameObjects;
 extern cGameObject* g_pTheDebugSphere;
 extern cGameObject* g_pSkyBoxObject;
+extern cGameObject* g_pMirrorObject;
 
 cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::string meshFilename )
 {
@@ -88,14 +89,39 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 	cAssimpBasic myAssimpLoader;
 	std::string error;
 
+	{ // Mirror
+		::g_pMirrorObject = new cGameObject();
+		::g_pMirrorObject->friendlyName = "Mirror";
+		::g_pMirrorObject->scale = 3.0f;
+		::g_pMirrorObject->position = glm::vec3( 0.0f, 0.0, 6.0f );
 
+		cMesh theMesh;
+
+		if( !myAssimpLoader.loadModelA( "assets/models/mirror.ply", theMesh, error ) )
+		{
+			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
+		}
+		else
+		{
+			theMesh.name = "mirror";
+			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
+			{
+				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
+			}
+
+			sMeshDrawInfo meshInfo;
+			meshInfo.scale = ::g_pMirrorObject->scale;
+			meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
+			meshInfo.name = theMesh.name;
+			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "purple.bmp", 1.0f ) );
+			::g_pMirrorObject->vecMeshes.push_back( meshInfo );
+			//::g_vecGameObjects.push_back( ::g_pMirrorObject );		// Fastest way to add
+		}
+	}
 
 	{	// Our skybox object
-		//cGameObject* pTempGO = new cGameObject();
 		::g_pSkyBoxObject = new cGameObject();
-		//cPhysicalProperties physState;
-		//::g_pSkyBoxObject->SetPhysState( physState );
-
 		::g_pSkyBoxObject->type = eTypeOfGO::SKYBOX;
 
 		cMesh theMesh;
@@ -109,7 +135,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 			theMesh.name = "skybox_sphere";
 			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
 			{
-
+				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
 			}
 			sMeshDrawInfo meshInfo;
 			meshInfo.scale = 10000.0f;
@@ -126,10 +152,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 	{ // Terrain
 		cGameObject* pTempGO = new cGameObject();
 		pTempGO->friendlyName = "Terrain";
-
 		pTempGO->type = eTypeOfGO::TERRAIN;
-		//pTempGO->team = eTeam::NONE;
-		//pTempGO->behaviour = eBehaviour::UNAVAIABLE;
 		pTempGO->scale = 1.0f;
 
 		cMesh theMesh;
@@ -157,93 +180,6 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 			::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
 		}
 	}
-
-	//
-	//{ // Mr. Meeseeks
-	//cGameObject* pTempGO = new cGameObject();
-	//pTempGO->friendlyName = "Meeseeks";
-
-	//pTempGO->type = eTypeOfGO::CHARACTER;
-	//pTempGO->team = eTeam::ENEMY;
-	//pTempGO->behaviour = eBehaviour::FOLLOWER;
-	//pTempGO->range = 4.0f;
-	//pTempGO->maxVel = 1.0f;
-	//pTempGO->health = 100.0f;
-	//pTempGO->scale = 0.02f;
-	//pTempGO->mySpeed = sGOSpeed( 1.0f, 0.4f, 0.5f, 0.5f );
-
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/meeseeks/Bored.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_FORWARD, "assets/models/meeseeks/Happy Walk.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_BACKWARD, "assets/models/meeseeks/Happy Walk Backward.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::ACTION, "assets/models/meeseeks/Walking Turn 180.fbx" ) );
-
-	//// This assigns the game object to the particular skinned mesh type 
-	//pTempGO->pSimpleSkinnedMesh = createSkinnedMesh( pTempGO->myAnimations );
-
-	//createMeshFromSkinnedMesh( pTempGO->pSimpleSkinnedMesh, shaderID, pVAOManager );
-
-	//// Add a default animation 
-	//pTempGO->pAniState = new cAnimationState();
-	//pTempGO->pAniState->defaultAnimation.name = "assets/models/meeseeks/Bored.fbx";
-
-	//pTempGO->pAniState->defaultAnimation.frameStepTime = 0.01f;
-	//// Get the total time of the entire animation
-	//pTempGO->pAniState->defaultAnimation.totalTime = pTempGO->pSimpleSkinnedMesh->GetDuration();
-
-	//pTempGO->position = glm::vec3( -2.0f, 0.0, 0.0f );
-	//sMeshDrawInfo meshInfo;
-	//meshInfo.scale = pTempGO->scale;
-	//meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-	//meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-	//meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
-	//meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "meeseeks.bmp", 1.0f ) );
-	//pTempGO->vecMeshes.push_back( meshInfo );
-	//::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
-	//}
-
-	//{	// Scary Terry
-	//	cGameObject* pTempGO = new cGameObject();
-	//pTempGO->friendlyName = "Scary";
-
-	//pTempGO->type = eTypeOfGO::CHARACTER;
-	//pTempGO->team = eTeam::PLAYER;
-	//pTempGO->behaviour = eBehaviour::FOLLOWER;
-	//pTempGO->range = 4.0f;
-	//pTempGO->maxVel = 1.0f;
-	//pTempGO->health = 100.0f;
-	//pTempGO->scale = 0.05f;
-	//pTempGO->mySpeed = sGOSpeed( 1.0f, 0.4f, 0.5f, 0.5f );
-
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/scaryterry/Idle.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_LEFT, "assets/models/scaryterry/Left Strafe Walking.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::STRAFE_RIGHT, "assets/models/scaryterry/Right Strafe Walking.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_FORWARD, "assets/models/scaryterry/Walking.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_BACKWARD, "assets/models/scaryterry/Walk Backwards.fbx" ) );
-	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::ACTION, "assets/models/scaryterry/Mutant Swiping.fbx" ) );
-
-	//// This assigns the game object to the particular skinned mesh type 
-	//pTempGO->pSimpleSkinnedMesh = createSkinnedMesh( pTempGO->myAnimations );
-
-	//createMeshFromSkinnedMesh( pTempGO->pSimpleSkinnedMesh, shaderID, pVAOManager );
-
-	//// Add a default animation 
-	//pTempGO->pAniState = new cAnimationState();
-	//pTempGO->pAniState->defaultAnimation.name = "assets/models/scaryterry/Idle.fbx";
-
-	//pTempGO->pAniState->defaultAnimation.frameStepTime = 0.01f;
-	//// Get the total time of the entire animation
-	//pTempGO->pAniState->defaultAnimation.totalTime = pTempGO->pSimpleSkinnedMesh->GetDuration();
-
-	//pTempGO->position = glm::vec3( -2.0f, 0.0, 0.0f );
-	//sMeshDrawInfo meshInfo;
-	//meshInfo.scale = pTempGO->scale;
-	//meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-	//meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-	//meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
-	//meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "scary.bmp", 1.0f ) );
-	//pTempGO->vecMeshes.push_back( meshInfo );
-	//::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
-	//}
 
 	{	// Skinned mesh  model
 		cGameObject* pTempGO = new cGameObject();
@@ -299,7 +235,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 
 	{	// Skinned mesh  model
 		cGameObject* pTempGO = new cGameObject();
-		pTempGO->friendlyName = "player";
+		pTempGO->friendlyName = "Rick";
 
 		pTempGO->type = eTypeOfGO::CHARACTER;
 		pTempGO->team = eTeam::PLAYER;

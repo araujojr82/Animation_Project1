@@ -15,6 +15,8 @@ bool bIsWKeyDown = false;
 
 extern void setState( eGOState nextAnimation );
 
+extern GLint g_renderID;
+
 void changePlayerGO()
 {
 	for( int i = 0; i != ::g_vecGameObjects.size(); i++ )
@@ -41,6 +43,9 @@ void changePlayerGO()
 
 	if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GLFW_TRUE );
+
+	if( key == GLFW_KEY_1 && action == GLFW_PRESS )
+		::g_renderID++;
 
 	if( key == GLFW_KEY_TAB && action == GLFW_PRESS )
 	{
