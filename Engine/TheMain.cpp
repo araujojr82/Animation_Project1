@@ -459,7 +459,6 @@ void move_player()
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.backward * ::g_pThePlayerGO->scale;
 
 		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;
-		//movement *= 0.01f;
 		::g_pThePlayerGO->vel -= movement;
 
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
@@ -486,9 +485,9 @@ void move_player()
 	::g_pThePlayerGO->position += ::g_pThePlayerGO->vel;
 
 	if( ::g_pThePlayerGO->currentState == TURNING_RIGHT )
-		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.01f, 0.0f ) );
+		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.02f, 0.0f ) );
 	if( ::g_pThePlayerGO->currentState == TURNING_LEFT )
-		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.01f, 0.0f ) );
+		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.02f, 0.0f ) );
 		
 
 	return;
@@ -574,35 +573,6 @@ void drawTagCircle( cGameObject* pTheGO )
 	//delete tagCircleGO;
 }
 
-void drawRange()
-{
-	glm::vec3 color = glm::vec3( 1.0f );
-
-	glm::vec3 point1 = glm::vec3( maxX, 0.0f, maxZ );
-	glm::vec3 point2 = glm::vec3( maxX, 0.0f, minZ );
-	glm::vec3 point3 = glm::vec3( minX, 0.0f, minZ );
-	glm::vec3 point4 = glm::vec3( minX, 0.0f, maxZ );
-	
-	glm::vec3 point5 = glm::vec3( maxX, 1.0f, maxZ );
-	glm::vec3 point6 = glm::vec3( maxX, 1.0f, minZ );
-	glm::vec3 point7 = glm::vec3( minX, 1.0f, minZ );
-	glm::vec3 point8 = glm::vec3( minX, 1.0f, maxZ );
-
-	::g_pDebugRenderer->addLine( point1, point2, color, true );
-	::g_pDebugRenderer->addLine( point2, point3, color, true );
-	::g_pDebugRenderer->addLine( point3, point4, color, true );
-	::g_pDebugRenderer->addLine( point4, point1, color, true );
-														
-	::g_pDebugRenderer->addLine( point5, point6, color, true );
-	::g_pDebugRenderer->addLine( point6, point7, color, true );
-	::g_pDebugRenderer->addLine( point7, point8, color, true );
-	::g_pDebugRenderer->addLine( point8, point5, color, true );
-														
-	::g_pDebugRenderer->addLine( point1, point5, color, true );
-	::g_pDebugRenderer->addLine( point2, point6, color, true );
-	::g_pDebugRenderer->addLine( point3, point7, color, true );
-	::g_pDebugRenderer->addLine( point4, point8, color, true );
-}
 
 void checkBoundaries( cGameObject* pTheGO )
 {
@@ -854,13 +824,8 @@ int main( void )
 
 	::g_pThePlayerGO = findObjectByFriendlyName( PLAYERNAME, ::g_vecGameObjects );
 
-	//::g_pTheCamera = new cCamera();
-	//::g_pTheCamera->setCameraMode( cCamera::FLY_CAMERA );	
-	//::g_pTheCamera->eye = glm::vec3( -5.0f, -5.0f, -25.0f );
-
-	glm::vec3 camPos = ::g_pThePlayerGO->position + glm::vec3( 0.0f, 6.0f, 6.0f );
-//	::g_pTheMouseCamera = new cMouseCamera( camPos, camUp ); // camYaw, camPitch );
-	::g_pTheMouseCamera = new cMouseCamera( camPos, glm::vec3( 0.0f, 1.0f, 0.0f ), -135.f, -32.f );
+	glm::vec3 camPos = ::g_pThePlayerGO->position + glm::vec3( 0.0f, 2.0f, -6.0f );
+	::g_pTheMouseCamera = new cMouseCamera( camPos, glm::vec3( 0.0f, 1.0f, 0.0f ), 90.f, -20.f );
 
 	glEnable( GL_DEPTH );
 
