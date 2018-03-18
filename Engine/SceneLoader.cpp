@@ -17,6 +17,7 @@ extern std::vector< cGameObject* >  g_vecGameObjects;
 extern cGameObject* g_pTheDebugSphere;
 extern cGameObject* g_pSkyBoxObject;
 extern cGameObject* g_pMirrorObject;
+extern cGameObject* g_pSphereObject;
 
 cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::string meshFilename )
 {
@@ -286,19 +287,19 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
 	}
 
-	{	// THIS IS THE REFLECTIVE BUNNY
-		cGameObject* pTempGO = new cGameObject();
-		pTempGO->position = glm::vec3( 0.0f, 0.0f, -3.0f );
+	{	// THIS IS THE REFLECTIVE Sphere
+		::g_pSphereObject = new cGameObject();
+		::g_pSphereObject->position = glm::vec3( 0.0f, 0.0f, -3.0f );
 
 		cMesh theMesh;
 
-		if( !myAssimpLoader.loadModelA( "assets/models/bunny.obj", theMesh, error ) )
+		if( !myAssimpLoader.loadModelA( "assets/models/sphere.ply", theMesh, error ) )
 		{
 			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
 		}
 		else
 		{
-			theMesh.name = "bunny";
+			theMesh.name = "cube";
 			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
 			{
 				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
@@ -309,18 +310,18 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 			meshInfo.scale = 1.0f;
 			meshInfo.name = theMesh.name;
 
-			// Make bunny reflective...
+			// Make the cube reflective...
 			meshInfo.bIsEnvirMapped = true;
 			meshInfo.reflectBlendRatio = 0.5f;
 			meshInfo.refractBlendRatio = 0.5f;
 			meshInfo.coefficientRefract = 0.1f;
 
-			pTempGO->friendlyName = "theBunny";
+			::g_pSphereObject->friendlyName = "theSphere";
 
 			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "teste1.bmp", 1.0f ) );
-			pTempGO->vecMeshes.push_back( meshInfo );
+			::g_pSphereObject->vecMeshes.push_back( meshInfo );
 
-			::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
+			::g_vecGameObjects.push_back( ::g_pSphereObject );		// Fastest way to add
 		}
 	}
 	

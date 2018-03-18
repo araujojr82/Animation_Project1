@@ -16,6 +16,7 @@ bool bIsWKeyDown = false;
 extern void setState( eGOState nextAnimation );
 
 extern GLint g_renderID;
+extern cGameObject* g_pSphereObject;
 
 void changePlayerGO()
 {
@@ -44,8 +45,26 @@ void changePlayerGO()
 	if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GLFW_TRUE );
 
-	if( key == GLFW_KEY_1 && action == GLFW_PRESS )
+	if( key == GLFW_KEY_0 && action == GLFW_PRESS )
 		::g_renderID++;
+		
+	if( key == GLFW_KEY_1 && action == GLFW_PRESS )
+		::g_pSphereObject->vecMeshes[0].reflectBlendRatio *= 0.9f;
+
+	if( key == GLFW_KEY_2 && action == GLFW_PRESS )
+		::g_pSphereObject->vecMeshes[0].reflectBlendRatio *= 1.1f;
+
+	if( key == GLFW_KEY_3 && action == GLFW_PRESS )
+		::g_pSphereObject->vecMeshes[0].refractBlendRatio *= 0.9f;
+
+	if( key == GLFW_KEY_4 && action == GLFW_PRESS )
+		::g_pSphereObject->vecMeshes[0].refractBlendRatio *= 1.1f;
+
+	if( key == GLFW_KEY_5 && action == GLFW_PRESS )
+		::g_pSphereObject->vecMeshes[0].coefficientRefract -= 0.1f;
+	
+	if( key == GLFW_KEY_6 && action == GLFW_PRESS )
+		::g_pSphereObject->vecMeshes[0].coefficientRefract += 0.1f;
 
 	if( key == GLFW_KEY_TAB && action == GLFW_PRESS )
 	{

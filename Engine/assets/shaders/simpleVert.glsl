@@ -148,4 +148,3 @@ void main()
 	fUV_X2 = uvX2;			// Sent to fragment shader
 
 }
-

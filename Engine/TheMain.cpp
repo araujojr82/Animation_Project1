@@ -70,6 +70,7 @@ std::vector< cGameObject* > g_vecGameObjects;
 cGameObject* g_pThePlayerGO = NULL;
 cGameObject* g_pSkyBoxObject = NULL;
 cGameObject* g_pMirrorObject = NULL;
+cGameObject* g_pSphereObject = NULL;
 
 //cCamera* g_pTheCamera = NULL;
 cMouseCamera* g_pTheMouseCamera = NULL;
@@ -441,9 +442,12 @@ void move_player()
 	{	
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.forward * ::g_pThePlayerGO->scale;
 
-		if( ::g_pThePlayerGO->currentState == eGOState::RUNNING || 
-			::g_pThePlayerGO->currentState == eGOState::JUMPING_LONG )
+		if( ::g_pThePlayerGO->currentState == eGOState::RUNNING ||
+			::g_pThePlayerGO->currentState == eGOState::JUMPING_SHORT )
 			maxSpeed *= 2.0f;
+
+		if( ::g_pThePlayerGO->currentState == eGOState::JUMPING_LONG )
+			maxSpeed *= 4.0f;
 
 		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;		
 
@@ -1022,9 +1026,9 @@ int main( void )
 
 				::g_drunkEffect = 1;
 
-				if( ::g_drunkOffset >= 0.02f )
+				if( ::g_drunkOffset >= 0.01f )
 					::g_drunkOffsetChange = -0.0001;
-				else if( ::g_drunkOffset <= -0.02f )
+				else if( ::g_drunkOffset <= -0.01f )
 					::g_drunkOffsetChange = 0.0001;
 
 				::g_drunkOffset += ::g_drunkOffsetChange;
