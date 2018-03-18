@@ -19,7 +19,8 @@ enum eTypeOfGO
 	PROP	  = 1,
 	ITEM	  = 2,
 	TERRAIN   = 3,
-	OTHER	  = 99
+	SKYBOX    = 4,
+	OTHER	  = 99	
 };
 
 enum eTeam

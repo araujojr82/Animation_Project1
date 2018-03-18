@@ -27,8 +27,8 @@ void changePlayerGO()
 
 			::g_pThePlayerGO = ::g_vecGameObjects[i];
 			::g_pThePlayerGO->behaviour = eBehaviour::UNAVAIABLE;
-			::g_pTheMouseCamera->setTarget( ::g_pThePlayerGO );
-			::g_pTheMouseCamera->moveCamera();
+			//::g_pTheMouseCamera->setTarget( ::g_pThePlayerGO );
+			//::g_pTheMouseCamera->moveCamera();
 			return;
 		}
 

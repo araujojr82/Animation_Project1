@@ -15,6 +15,8 @@
 #include "cFBO.h"
 extern cFBO g_myFBO;
 
+extern bool g_bIsSecondPass;
+
 // Draw a single object
 // If pParentGO == NULL, then IT'S the parent
 void DrawObject( cGameObject* pTheGO, cGameObject* pParentGO );
@@ -80,7 +82,7 @@ void RenderScene( std::vector< cGameObject* > &vec_pGOs, GLFWwindow* pGLFWWindow
 	::g_pLightManager->CopyLightInformationToCurrentShader();
 
 	// Projection and view don't change per scene (maybe)
-	matProjection = glm::perspective( 0.6f,			// FOV
+	matProjection = glm::perspective( glm::radians( ::g_pTheMouseCamera->Zoom ), //was 0.6f,	// FOV
 									  ratio,		// Aspect ratio
 									  1.0f,		// Near (as big as possible)
 									  10000.0f );	// Far (as small as possible)
@@ -406,31 +408,32 @@ void DrawMesh( sMeshDrawInfo &theMesh, cGameObject* pTheGO )
 	// And more environment things
 
 
-
-	// ***************************************************
-	//    ___  _    _                      _  __  __           _     
-	//   / __|| |__(_) _ _   _ _   ___  __| ||  \/  | ___  ___| |_   
-	//   \__ \| / /| || ' \ | ' \ / -_)/ _` || |\/| |/ -_)(_-<| ' \  
-	//   |___/|_\_\|_||_||_||_||_|\___|\__,_||_|  |_|\___|/__/|_||_| 
-	//                                                               
-	GLint UniLoc_IsSkinnedMesh = glGetUniformLocation( curShaderProgID, "bIsASkinnedMesh" );
-
-	if( pTheGO->pSimpleSkinnedMesh )
+	if( !::g_bIsSecondPass )
 	{
-		// Calculate the pose and load the skinned mesh stuff into the shader, too
-		GLint UniLoc_NumBonesUsed = glGetUniformLocation( curShaderProgID, "numBonesUsed" );
-		GLint UniLoc_BoneIDArray = glGetUniformLocation( curShaderProgID, "bones" );
-		CalculateSkinnedMeshBonesAndLoad( theMesh, pTheGO, UniLoc_NumBonesUsed, UniLoc_BoneIDArray );
+		// ***************************************************
+		//    ___  _    _                      _  __  __           _     
+		//   / __|| |__(_) _ _   _ _   ___  __| ||  \/  | ___  ___| |_   
+		//   \__ \| / /| || ' \ | ' \ / -_)/ _` || |\/| |/ -_)(_-<| ' \  
+		//   |___/|_\_\|_||_||_||_||_|\___|\__,_||_|  |_|\___|/__/|_||_| 
+		//                                                               
+		GLint UniLoc_IsSkinnedMesh = glGetUniformLocation( curShaderProgID, "bIsASkinnedMesh" );
 
-		glUniform1f( UniLoc_IsSkinnedMesh, GL_TRUE );
+		if( pTheGO->pSimpleSkinnedMesh )
+		{
+			// Calculate the pose and load the skinned mesh stuff into the shader, too
+			GLint UniLoc_NumBonesUsed = glGetUniformLocation( curShaderProgID, "numBonesUsed" );
+			GLint UniLoc_BoneIDArray = glGetUniformLocation( curShaderProgID, "bones" );
+			CalculateSkinnedMeshBonesAndLoad( theMesh, pTheGO, UniLoc_NumBonesUsed, UniLoc_BoneIDArray );
+
+			glUniform1f( UniLoc_IsSkinnedMesh, GL_TRUE );
+		}
+		else
+		{
+			glUniform1f( UniLoc_IsSkinnedMesh, GL_FALSE );
+		}
+
+		// ***************************************************
 	}
-	else
-	{
-		glUniform1f( UniLoc_IsSkinnedMesh, GL_FALSE );
-	}
-
-	// ***************************************************
-
 
 	// EDNOF: Reflection and refraction shader uniforms
 

@@ -7,11 +7,15 @@
 
 // For the cSimpleAssimpSkinnedMeshLoader class
 #include "assimp/cSimpleAssimpSkinnedMeshLoader_OneMesh.h"
+#include "assimp/cAssimpBasic.h"
 
 #include "cAnimationState.h"
 
+#include <iostream>
+
 extern std::vector< cGameObject* >  g_vecGameObjects;
 extern cGameObject* g_pTheDebugSphere;
+extern cGameObject* g_pSkyBoxObject;
 
 cSimpleAssimpSkinnedMesh* createSkinnedMesh( std::string meshFilename )
 {
@@ -79,51 +83,123 @@ bool createMeshFromSkinnedMesh( cSimpleAssimpSkinnedMesh* theSkinnedMesh, int sh
 	return true;
 }
 
-
 void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 {
-	
-	{ // Mr. Meeseeks
-	cGameObject* pTempGO = new cGameObject();
-	pTempGO->friendlyName = "Meeseeks";
+	cAssimpBasic myAssimpLoader;
+	std::string error;
 
-	pTempGO->type = eTypeOfGO::CHARACTER;
-	pTempGO->team = eTeam::PLAYER;
-	pTempGO->behaviour = eBehaviour::FOLLOWER;
-	pTempGO->range = 4.0f;
-	pTempGO->maxVel = 1.0f;
-	pTempGO->health = 100.0f;
-	pTempGO->scale = 0.05f;
-	pTempGO->mySpeed = sGOSpeed( 1.0f, 0.4f, 0.5f, 0.5f );
 
-	pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/meeseeks/Bored.fbx" ) );
-	pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_FORWARD, "assets/models/meeseeks/Happy Walk.fbx" ) );
-	pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_BACKWARD, "assets/models/meeseeks/Happy Walk Backward.fbx" ) );
-	pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::ACTION, "assets/models/meeseeks/Walking Turn 180.fbx" ) );
 
-	// This assigns the game object to the particular skinned mesh type 
-	pTempGO->pSimpleSkinnedMesh = createSkinnedMesh( pTempGO->myAnimations );
+	{	// Our skybox object
+		//cGameObject* pTempGO = new cGameObject();
+		::g_pSkyBoxObject = new cGameObject();
+		//cPhysicalProperties physState;
+		//::g_pSkyBoxObject->SetPhysState( physState );
 
-	createMeshFromSkinnedMesh( pTempGO->pSimpleSkinnedMesh, shaderID, pVAOManager );
+		::g_pSkyBoxObject->type = eTypeOfGO::SKYBOX;
 
-	// Add a default animation 
-	pTempGO->pAniState = new cAnimationState();
-	pTempGO->pAniState->defaultAnimation.name = "assets/models/meeseeks/Bored.fbx";
+		cMesh theMesh;
 
-	pTempGO->pAniState->defaultAnimation.frameStepTime = 0.01f;
-	// Get the total time of the entire animation
-	pTempGO->pAniState->defaultAnimation.totalTime = pTempGO->pSimpleSkinnedMesh->GetDuration();
+		if( !myAssimpLoader.loadModelA( "assets/models/skybox_sphere.ply", theMesh, error ) )
+		{
+			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
+		}
+		else
+		{
+			theMesh.name = "skybox_sphere";
+			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
+			{
 
-	pTempGO->position = glm::vec3( -2.0f, 0.0, 0.0f );
-	sMeshDrawInfo meshInfo;
-	meshInfo.scale = pTempGO->scale;
-	meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-	meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-	meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
-	meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "meeseeks.bmp", 1.0f ) );
-	pTempGO->vecMeshes.push_back( meshInfo );
-	::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
+			}
+			sMeshDrawInfo meshInfo;
+			meshInfo.scale = 10000.0f;
+			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
+			meshInfo.name = theMesh.name;
+			meshInfo.vecMeshCubeMaps.push_back( sTextureBindBlendInfo( "space", 1.0f ) );
+			meshInfo.bIsSkyBoxObject = true;
+			::g_pSkyBoxObject->vecMeshes.push_back( meshInfo );
+			// IS SKYBOX
+			::g_vecGameObjects.push_back( ::g_pSkyBoxObject );		// Fastest way to add			
+		}
 	}
+
+	{ // Terrain
+		cGameObject* pTempGO = new cGameObject();
+		pTempGO->friendlyName = "Terrain";
+
+		pTempGO->type = eTypeOfGO::TERRAIN;
+		//pTempGO->team = eTeam::NONE;
+		//pTempGO->behaviour = eBehaviour::UNAVAIABLE;
+		pTempGO->scale = 1.0f;
+
+		cMesh theMesh;
+
+		if (!myAssimpLoader.loadModelA("assets/models/ground_terrain.ply", theMesh, error))
+		{
+			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
+		}
+		else
+		{
+			theMesh.name = "terrain";
+			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
+			{
+				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
+			}
+
+			pTempGO->position = glm::vec3( 0.0f, 0.0, 0.0f );
+			sMeshDrawInfo meshInfo;
+			meshInfo.scale = pTempGO->scale;
+			meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
+			meshInfo.name = theMesh.name;
+			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "grass1.bmp", 1.0f ) );
+			pTempGO->vecMeshes.push_back( meshInfo );
+			::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
+		}
+	}
+
+	//
+	//{ // Mr. Meeseeks
+	//cGameObject* pTempGO = new cGameObject();
+	//pTempGO->friendlyName = "Meeseeks";
+
+	//pTempGO->type = eTypeOfGO::CHARACTER;
+	//pTempGO->team = eTeam::ENEMY;
+	//pTempGO->behaviour = eBehaviour::FOLLOWER;
+	//pTempGO->range = 4.0f;
+	//pTempGO->maxVel = 1.0f;
+	//pTempGO->health = 100.0f;
+	//pTempGO->scale = 0.02f;
+	//pTempGO->mySpeed = sGOSpeed( 1.0f, 0.4f, 0.5f, 0.5f );
+
+	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/meeseeks/Bored.fbx" ) );
+	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_FORWARD, "assets/models/meeseeks/Happy Walk.fbx" ) );
+	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::WALK_BACKWARD, "assets/models/meeseeks/Happy Walk Backward.fbx" ) );
+	//pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::ACTION, "assets/models/meeseeks/Walking Turn 180.fbx" ) );
+
+	//// This assigns the game object to the particular skinned mesh type 
+	//pTempGO->pSimpleSkinnedMesh = createSkinnedMesh( pTempGO->myAnimations );
+
+	//createMeshFromSkinnedMesh( pTempGO->pSimpleSkinnedMesh, shaderID, pVAOManager );
+
+	//// Add a default animation 
+	//pTempGO->pAniState = new cAnimationState();
+	//pTempGO->pAniState->defaultAnimation.name = "assets/models/meeseeks/Bored.fbx";
+
+	//pTempGO->pAniState->defaultAnimation.frameStepTime = 0.01f;
+	//// Get the total time of the entire animation
+	//pTempGO->pAniState->defaultAnimation.totalTime = pTempGO->pSimpleSkinnedMesh->GetDuration();
+
+	//pTempGO->position = glm::vec3( -2.0f, 0.0, 0.0f );
+	//sMeshDrawInfo meshInfo;
+	//meshInfo.scale = pTempGO->scale;
+	//meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+	//meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
+	//meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
+	//meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "meeseeks.bmp", 1.0f ) );
+	//pTempGO->vecMeshes.push_back( meshInfo );
+	//::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
+	//}
 
 	//{	// Scary Terry
 	//	cGameObject* pTempGO = new cGameObject();
@@ -179,7 +255,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		pTempGO->range = 4.0f;
 		pTempGO->maxVel = 1.0f;
 		pTempGO->health = 100.0f;
-		pTempGO->scale = 0.05f;
+		pTempGO->scale = 0.02f;
 		pTempGO->mySpeed = sGOSpeed( 1.0f, 0.4f, 0.5f, 0.5f );
 
 		pTempGO->myAnimations.push_back( sAnimDesc( eAnimationType::BASE, "assets/models/morty/Idle.fbx" ) );
@@ -232,7 +308,7 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		pTempGO->health = 100.0f;
 		pTempGO->maxVel = 1.0f;
 		pTempGO->health = 100.0f;
-		pTempGO->scale = 0.05f;
+		pTempGO->scale = 0.02f;
 		pTempGO->mySpeed = sGOSpeed( 1.5f, 0.8f, 1.0f, 1.0f );
 
 
@@ -257,21 +333,16 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 
 		// Add a default animation 
 		pTempGO->pAniState = new cAnimationState();
-		//pTempGO->pAniState->defaultAnimation.name = "assets/rick/rick_anim_walk.fbx";
 		pTempGO->pAniState->defaultAnimation.name = "assets/models/rick/Idle.fbx";
 		pTempGO->pAniState->defaultAnimation.frameStepTime = 0.01f;
 		// Get the total time of the entire animation
 		pTempGO->pAniState->defaultAnimation.totalTime = pTempGO->pSimpleSkinnedMesh->GetDuration();
 
 		pTempGO->position = glm::vec3( 0.0f, 0.0, 0.0f );
-		//cPhysicalProperties physState;
-		//physState.position = glm::vec3( +20.0f, 0.0, 0.0f );
-		//pTempGO->SetPhysState( physState );
 		sMeshDrawInfo meshInfo;
 		meshInfo.scale = pTempGO->scale;
 		meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 		meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-		//meshInfo.bDrawAsWireFrame = true;
 		meshInfo.name = pTempGO->pSimpleSkinnedMesh->friendlyName;
 		meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "rick_texture.bmp", 1.0f ) );
 		pTempGO->vecMeshes.push_back( meshInfo );
@@ -279,73 +350,43 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
 	}
 
-	//{	// THIS IS THE REFLECTIVE BUNNY
-	//	cGameObject* pTempGO = new cGameObject();
-	//	cPhysicalProperties physState;
-	//	physState.integrationUpdateType = cPhysicalProperties::EXCLUDED_FROM_INTEGRATION;
-	//	physState.mass = physState.inverseMass = 0.0f;	// Infinite
-	//	physState.position.x = 75.0f;
-	//	physState.position.y = 25.0f;
-	//	//		physState.position.y = -100.0f;
-	//	physState.setRotationalSpeedEuler( glm::vec3( 0.0f, 0.5f, 0.0f ) );
-	//	pTempGO->SetPhysState( physState );
+	{	// THIS IS THE REFLECTIVE BUNNY
+		cGameObject* pTempGO = new cGameObject();
+		pTempGO->position = glm::vec3( 0.0f, 0.0f, -3.0f );
 
+		cMesh theMesh;
 
-	//	sMeshDrawInfo meshInfo;
-	//	meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-	//	meshInfo.scale = 350.0f;
-	//	meshInfo.name = "bunny";
+		if( !myAssimpLoader.loadModelA( "assets/models/bunny.obj", theMesh, error ) )
+		{
+			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
+		}
+		else
+		{
+			theMesh.name = "bunny";
+			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
+			{
+				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
+			}
 
-	//	// Make bunny reflective...
-	//	meshInfo.bIsEnvirMapped = true;
-	//	meshInfo.reflectBlendRatio = 0.5f;
-	//	meshInfo.refractBlendRatio = 0.5f;
-	//	meshInfo.coefficientRefract = 0.1f;
+			sMeshDrawInfo meshInfo;
+			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
+			meshInfo.scale = 1.0f;
+			meshInfo.name = theMesh.name;
 
-	//	pTempGO->friendlyName = "bugs";
+			// Make bunny reflective...
+			meshInfo.bIsEnvirMapped = true;
+			meshInfo.reflectBlendRatio = 0.5f;
+			meshInfo.refractBlendRatio = 0.5f;
+			meshInfo.coefficientRefract = 0.1f;
 
-	//	meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "barberton_etm_2001121_lrg.bmp", 1.0f ) );
-	//	meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "height_map_norway-height-map-aster-30m.bmp", 0.0f ) );
-	//	pTempGO->vecMeshes.push_back( meshInfo );
+			pTempGO->friendlyName = "theBunny";
 
-	//	::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
-	//}
+			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "teste1.bmp", 1.0f ) );
+			pTempGO->vecMeshes.push_back( meshInfo );
+
+			::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
+		}
+	}
 	
-	//{	// THIS IS THE TERRAIN
-	//	cGameObject* pTempGO = new cGameObject();
-	//	cPhysicalProperties physState;
-	//	physState.integrationUpdateType = cPhysicalProperties::EXCLUDED_FROM_INTEGRATION;
-	//	physState.mass = physState.inverseMass = 0.0f;	// Infinite
-	//	physState.position.y = -100.0f;
-	//	pTempGO->SetPhysState( physState );
-
-	//	sMeshDrawInfo meshInfo;
-	//	meshInfo.scale = 1.0f;
-	//	meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-	//	meshInfo.name = "MeshLabTerrain_xyz_n_uv";
-	//	meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "GuysOnSharkUnicorn.bmp", 1.0f ) );
-	//	meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "Utah_Teapot_xyz_n_uv_Enterprise.bmp", 0.0f ) );
-	//	pTempGO->vecMeshes.push_back( meshInfo );
-
-	//	::g_vecGameObjects.push_back( pTempGO );		// Fastest way to add
-	//}
-
-	//// Our skybox object
-	//{
-	//	//cGameObject* pTempGO = new cGameObject();
-	//	::g_pSkyBoxObject = new cGameObject();
-	//	cPhysicalProperties physState;
-	//	::g_pSkyBoxObject->SetPhysState( physState );
-	//	sMeshDrawInfo meshInfo;
-	//	meshInfo.scale = 10000.0f;
-	//	meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 1.0f, 1.0f );
-	//	meshInfo.name = "SmoothSphereRadius1InvertedNormals";
-	//	meshInfo.vecMeshCubeMaps.push_back( sTextureBindBlendInfo( "space", 1.0f ) );
-	//	meshInfo.bIsSkyBoxObject = true;
-	//	::g_pSkyBoxObject->vecMeshes.push_back( meshInfo );
-	//	// IS SKYBOX
-	//	::g_vecGameObjects.push_back( ::g_pSkyBoxObject );		// Fastest way to add
-	//}
-
 	return;
 }

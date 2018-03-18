@@ -61,6 +61,10 @@ cGameObject::cGameObject()
 	this->bIsRunning = false;
 	this->bIsWalking = false;
 
+	// Set to NULL (or 0, or nullptr)
+	this->pSimpleSkinnedMesh = NULL;		// 0
+	this->pAniState = NULL;					// 0
+
 	return;
 }
 

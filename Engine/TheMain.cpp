@@ -67,6 +67,7 @@ int g_NUMBER_OF_LIGHTS = 1;
 std::vector< cGameObject* > g_vecGameObjects;
 
 cGameObject* g_pThePlayerGO = NULL;
+cGameObject* g_pSkyBoxObject = NULL;
 
 //cCamera* g_pTheCamera = NULL;
 cMouseCamera* g_pTheMouseCamera = NULL;
@@ -89,7 +90,8 @@ cDebugRenderer*			g_pDebugRenderer = 0;
 bool g_IsWindowFullScreen = false;
 GLFWwindow* g_pGLFWWindow = NULL;
 
-bool g_bUseDeferred = false; // Switch between 1 pass or 2 passes...
+bool g_bUseDeferred = true; // Switch between 1 pass or 2 passes...
+bool g_bIsSecondPass = false;
 
 // This contains the AABB grid for the terrain...
 //cAABBBroadPhase* g_terrainAABBBroadPhase = 0;
@@ -391,14 +393,6 @@ void move_player()
 		movement = ::g_pThePlayerGO->getRightVector() * -0.01f;
 		::g_pThePlayerGO->vel += movement;
 
-		std::cout << "Mov.Vec: "
-			<< movement.x << ", "
-			<< movement.y << ", "
-			<< movement.z << "  Inic.Vel: "
-			<< ::g_pThePlayerGO->vel.x << ", "
-			<< ::g_pThePlayerGO->vel.y << ", "
-			<< ::g_pThePlayerGO->vel.z << "  ";
-
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
@@ -410,11 +404,6 @@ void move_player()
 		{
 			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
 		}
-
-		std::cout << "Final.Vel: "
-			<< ::g_pThePlayerGO->vel.x << ", "
-			<< ::g_pThePlayerGO->vel.y << ", "
-			<< ::g_pThePlayerGO->vel.z << std::endl;
 
 	}
 	else if( ::g_pThePlayerGO->currentState == eGOState::MOVING_LEFT ||
@@ -426,14 +415,6 @@ void move_player()
 
 		::g_pThePlayerGO->vel += movement;
 
-		std::cout << "Mov.Vec: "
-			<< movement.x << ", "
-			<< movement.y << ", "
-			<< movement.z << "  Inic.Vel: "
-			<< ::g_pThePlayerGO->vel.x << ", "
-			<< ::g_pThePlayerGO->vel.y << ", "
-			<< ::g_pThePlayerGO->vel.z << "  ";
-
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
@@ -445,12 +426,6 @@ void move_player()
 		{
 			::g_pThePlayerGO->vel = glm::normalize( ::g_pThePlayerGO->vel ) * maxSpeed;
 		}
-
-		std::cout << "Final.Vel: "
-			<< ::g_pThePlayerGO->vel.x << ", "
-			<< ::g_pThePlayerGO->vel.y << ", "
-			<< ::g_pThePlayerGO->vel.z << std::endl;
-
 	}
 	else if( ::g_pThePlayerGO->currentState == eGOState::WALKING_FORWARD ||
 			 ::g_pThePlayerGO->currentState == eGOState::RUNNING ||
@@ -483,8 +458,8 @@ void move_player()
 	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.backward * ::g_pThePlayerGO->scale;
 
-		movement = glm::normalize( glm::vec3( ::g_pTheMouseCamera->Front.x, 0.0f, ::g_pTheMouseCamera->Front.z ) );
-		movement *= 0.01f;
+		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;
+		//movement *= 0.01f;
 		::g_pThePlayerGO->vel -= movement;
 
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
@@ -818,6 +793,9 @@ int main( void )
 	// Texture 
 	::g_pTextureManager = new CTextureManager();
 
+	std::cout << "GL_MAX_TEXTURE_IMAGE_UNITS: " << ::g_pTextureManager->getOpenGL_GL_MAX_TEXTURE_IMAGE_UNITS() << std::endl;
+	std::cout << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << ::g_pTextureManager->getOpenGL_GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS() << std::endl;
+
 	::g_pTextureManager->setBasePath( "assets/textures" );
 	if( !::g_pTextureManager->Create2DTextureFromBMPFile( "rick_texture.bmp", true ) )
 	{
@@ -828,9 +806,9 @@ int main( void )
 		std::cout << "Texture is loaded! Hazzah!" << std::endl;
 	}
 	::g_pTextureManager->Create2DTextureFromBMPFile( "morty.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "scary.bmp", true );
 	::g_pTextureManager->Create2DTextureFromBMPFile( "meeseeks.bmp", true );		
-	::g_pTextureManager->Create2DTextureFromBMPFile( "moon.bmp", true );
+	::g_pTextureManager->Create2DTextureFromBMPFile( "grass1.bmp", true );
+	::g_pTextureManager->Create2DTextureFromBMPFile( "teste1.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "red.bmp", true );	
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "blue.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "white.bmp", true );
@@ -840,22 +818,19 @@ int main( void )
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "green.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "yellow.bmp", true );
 	
-	//::g_pTextureManager->SetBasePath( "assets/textures/skybox/" );
-	//if( !::g_pTextureManager->CreateNewCubeTextureFromBMPFiles(
-	//	"space",
-	//	"SpaceBox_right1_posX.bmp",
-	//	"SpaceBox_left2_negX.bmp",
-	//	"SpaceBox_top3_posY.bmp",
-	//	"SpaceBox_bottom4_negY.bmp",
-	//	"SpaceBox_front5_posZ.bmp",
-	//	"SpaceBox_back6_negZ.bmp" ) )
-	//{
-	//	std::cout << "Didn't load skybox" << std::endl;
-	//}
-	//else
-	//{
-	//	std::cout << "Skybox Texture is loaded! Hazzah!" << std::endl;
-	//}
+	::g_pTextureManager->setBasePath( "assets/textures/skybox" );
+	if( !::g_pTextureManager->CreateCubeTextureFromBMPFiles(
+		"space",		
+		"face-r.bmp",						//posX_fileName			
+		"face-l.bmp",						//negX_fileName											
+		"face-d.bmp",		//BOTOM			//posY_fileName
+		"face-t.bmp",		// TOP			//negY_fileName
+		"face-f.bmp",						//posZ_fileName
+		"face-b.bmp",						//negZ_fileName
+		true, true ) )
+	{
+		std::cout << "Didn't load skybox" << std::endl;
+	}
 
 	//// THE AABB GENERATION --------------------------
 
@@ -883,12 +858,9 @@ int main( void )
 	//::g_pTheCamera->setCameraMode( cCamera::FLY_CAMERA );	
 	//::g_pTheCamera->eye = glm::vec3( -5.0f, -5.0f, -25.0f );
 
-	glm::vec3 camPos = ::g_pThePlayerGO->position + glm::vec3( 0.0f, 6.0f, 12.f );
-	glm::vec3 camUp = glm::vec3( 0.0f, 1.0f, 0.0f );
-	::g_pTheMouseCamera = new cMouseCamera( camPos, camUp ); // camYaw, camPitch );
-	// Follow the player
-	::g_pTheMouseCamera->setTarget( ::g_pThePlayerGO );
-	::g_pTheMouseCamera->moveCamera();	
+	glm::vec3 camPos = ::g_pThePlayerGO->position + glm::vec3( 0.0f, 6.0f, 6.0f );
+//	::g_pTheMouseCamera = new cMouseCamera( camPos, camUp ); // camYaw, camPitch );
+	::g_pTheMouseCamera = new cMouseCamera( camPos, glm::vec3( 0.0f, 1.0f, 0.0f ), -135.f, -32.f );
 
 	glEnable( GL_DEPTH );
 
@@ -916,7 +888,7 @@ int main( void )
 	// Gets the "current" time "tick" or "step"
 	double lastTimeStep = glfwGetTime();
 
-	drawRange();
+	//drawRange();
 
 	// Main game or application loop
 	while( !glfwWindowShouldClose( ::g_pGLFWWindow ) )
@@ -951,6 +923,7 @@ int main( void )
 		else
 		{	// Direct everything to the FBO
 		
+			::g_bIsSecondPass = false;
 			GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
 			glUniform1i( bIsSecondPassLocID, GL_FALSE );
 			glBindFramebuffer( GL_FRAMEBUFFER, g_myFBO.ID );
@@ -961,6 +934,7 @@ int main( void )
 			RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
 
 			// Render it again, but point the the FBO texture... 
+			::g_bIsSecondPass = true;
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 
 			glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
@@ -1012,15 +986,27 @@ int main( void )
 		//collisionCheck();
 
 		// Update camera
-		//ProcessCameraInput( window, deltaTime );
-		// No need to update the camera if nothing has changed
-		if( ::g_pThePlayerGO->position != ::g_pThePlayerGO->prevPosition ||
-			::g_pThePlayerGO->qOrientation != ::g_pThePlayerGO->prevOrientation )
-		{
-			::g_pTheMouseCamera->moveCamera();
-		}
-		::g_pThePlayerGO->prevOrientation = ::g_pThePlayerGO->qOrientation;
-		::g_pThePlayerGO->prevPosition = ::g_pThePlayerGO->position;
+		ProcessCameraInput( ::g_pGLFWWindow, deltaTime );
+		//// No need to update the camera if nothing has changed
+		//if( ::g_pThePlayerGO->position != ::g_pThePlayerGO->prevPosition ||
+		//	::g_pThePlayerGO->qOrientation != ::g_pThePlayerGO->prevOrientation )
+		//{
+		//	::g_pTheMouseCamera->moveCamera();
+		//}
+		//::g_pThePlayerGO->prevOrientation = ::g_pThePlayerGO->qOrientation;
+		//::g_pThePlayerGO->prevPosition = ::g_pThePlayerGO->position;
+
+		// *********************************************
+		//    ___ _        ___              __     ___                          
+		//   / __| |___  _| _ ) _____ __  __\ \   / __|__ _ _ __  ___ _ _ __ _  
+		//   \__ \ / / || | _ \/ _ \ \ / |___> > | (__/ _` | '  \/ -_) '_/ _` | 
+		//   |___/_\_\\_, |___/\___/_\_\    /_/   \___\__,_|_|_|_\___|_| \__,_| 
+		//            |__/                                                      
+		//cPhysicalProperties skyBoxPP;
+		//::g_pSkyBoxObject->GetPhysState( skyBoxPP );
+		//skyBoxPP.position = ::g_pTheCamera->getEyePosition();
+		//::g_pSkyBoxObject->SetPhysState( skyBoxPP );
+		::g_pSkyBoxObject->position = ::g_pTheMouseCamera->Position;
 
 
 		std::stringstream ssTitle;
@@ -1392,7 +1378,7 @@ void mouse_callback( GLFWwindow* window, double xpos, double zpos )
 	float rateOfTurn = xoffset * -0.01;
 
 	//::g_pTheBall->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, rateOfTurn, 0.0f ) );
-	//::g_pTheMouseCamera->ProcessMouseMovement( xoffset, zoffset );	
+	::g_pTheMouseCamera->ProcessMouseMovement( xoffset, zoffset );	
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -1424,17 +1410,17 @@ void ProcessCameraInput( GLFWwindow *window, double deltaTime )
 	if( glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, true );
 
-	if( glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS )
+	if( glfwGetKey( window, GLFW_KEY_UP ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( FORWARD, ( float )deltaTime );
-	if( glfwGetKey( window, GLFW_KEY_S ) == GLFW_PRESS )
+	if( glfwGetKey( window, GLFW_KEY_DOWN ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( BACKWARD, ( float )deltaTime );
-	if( glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS )
+	if( glfwGetKey( window, GLFW_KEY_LEFT ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( LEFT, ( float )deltaTime );
-	if( glfwGetKey( window, GLFW_KEY_D ) == GLFW_PRESS )
+	if( glfwGetKey( window, GLFW_KEY_RIGHT ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( RIGHT, ( float )deltaTime );
-	if( glfwGetKey( window, GLFW_KEY_Q ) == GLFW_PRESS )
+	if( glfwGetKey( window, GLFW_KEY_PAGE_UP ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( UP, ( float )deltaTime );
-	if( glfwGetKey( window, GLFW_KEY_E ) == GLFW_PRESS )
+	if( glfwGetKey( window, GLFW_KEY_PAGE_DOWN ) == GLFW_PRESS )
 		::g_pTheMouseCamera->ProcessKeyboard( DOWN, ( float )deltaTime );
 }
 

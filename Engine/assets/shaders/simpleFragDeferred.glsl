@@ -147,7 +147,6 @@ const float DONT_CALCULATE_LIGHTING = 0.25f;
 
 void main()
 {	
-
 	//fragColourOut[0] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	//fragColourOut[1] = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	fragOut.colour = vec4( 0.0f, 0.0f, 0.0f, 1.0f );
