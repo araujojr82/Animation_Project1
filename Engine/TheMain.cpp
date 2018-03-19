@@ -922,18 +922,19 @@ int main( void )
 		else
 		{	// Using the Deferred Renderer
 
-			//// ##########################################
+			////// ##########################################
 			////g_myMirrorFBO
-			//
+
+			//glm::vec3 tempPosition = ::g_pTheMouseCamera->Position;
 			//// rotate the camera around (to mirror position)
-			//::g_pTheMouseCamera->Yaw += 180.0f; 
+			//::g_pTheMouseCamera->Position = ::g_pMirrorObject->position;
+			//::g_pTheMouseCamera->Yaw += 180.0f;
 			//::g_pTheMouseCamera->Pitch = -::g_pTheMouseCamera->Pitch;
 			//::g_pTheMouseCamera->ProcessMouseMovement( 0, 0, false );
-			//
+
 			//// Direct everything to the FBO		
-			//::g_bIsSecondPass = false;
-			////GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
-			////glUniform1i( bIsSecondPassLocID, GL_FALSE );
+			//::g_bIsSecondPass = true;
+			//
 			//GLint renderPassNumber_LocID = glGetUniformLocation( sexyShaderID, "renderPassNumber" );
 			//glUniform1i( renderPassNumber_LocID, RENDER_PASS_0 );
 
@@ -945,17 +946,16 @@ int main( void )
 			//RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
 
 			//// Revert the camera to correct position
+			//::g_pTheMouseCamera->Position = tempPosition;
 			//::g_pTheMouseCamera->Yaw -= 180.0f;
 			//::g_pTheMouseCamera->Pitch = -::g_pTheMouseCamera->Pitch;
 			//::g_pTheMouseCamera->ProcessMouseMovement( 0, 0, true );
 
-			//// ##########################################
-
+			////// ##########################################
 
 			// Direct everything to the FBO		
 			::g_bIsSecondPass = false;
-			//GLint bIsSecondPassLocID = glGetUniformLocation( sexyShaderID, "bIsSecondPass" );
-			//glUniform1i( bIsSecondPassLocID, GL_FALSE );
+
 			GLint renderPassNumber_LocID = glGetUniformLocation( sexyShaderID, "renderPassNumber" );
 			glUniform1i( renderPassNumber_LocID, RENDER_PASS_0 );
 
@@ -965,7 +965,6 @@ int main( void )
 			g_myFBO.clearBuffers();
 
 			RenderScene( ::g_vecGameObjects, ::g_pGLFWWindow, deltaTime );
-
 
 			// -----------> The Second Pass
 
@@ -1062,8 +1061,9 @@ int main( void )
 
 			//GLint fullRenderedImage2D_LocID = glGetUniformLocation( sexyShaderID, "fullRenderedImage2D" );
 
-			//glUniform1i( fullRenderedImage2D_LocID, 6 ); // g_renderID );
-
+			////glUniform1i( fullRenderedImage2D_LocID, g_renderID );
+			//glUniform1i( fullRenderedImage2D_LocID, g_renderID );  //12 );
+			//
 			//std::vector< cGameObject* >  vecCopy2ndPass1;
 			//// Draw just the terrain as a test
 			////vecCopy2ndPass1.push_back( ::g_pSkyBoxObject );

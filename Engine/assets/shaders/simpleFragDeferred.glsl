@@ -409,7 +409,51 @@ void main()
 	//{
 	case PASS_2_FULL_SCREEN_EFFECT_PASS:	
 
-		break;
+		//fragOut.colour.rgb = vec3( 0.0f );
+		//fragOut.colour.r = 1.0f;
+
+		//vec2 textCoords2 = vec2( gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight );
+
+		//vec3 theColourAtThisPixel2 = texture( fullRenderedImage2D, fUV_X2.xy).rgb;
+		//vec4 theNormalAtThisPixel2 = texture( texFBONormal2D, fUV_X2.xy).rgba;
+		//vec3 theVertLocWorldAtThisPixel2 = texture( texFBOVertexWorldPos2D, fUV_X2.xy).rgb;
+
+		//if ( theNormalAtThisPixel2.a != CALCULATE_LIGHTING )
+		//{
+		//	// Return the colour as it is on the colour FBO
+		//	fragOut.colour.rgb = theColourAtThisPixel2.rgb;
+		//	fragOut.colour.a = 1.0f;
+		//}
+		//else
+		//{
+		//	// ELSE: do the lighting...
+		//	for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
+		//	{
+		//		fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel2.xyz, 					
+		//											   theVertLocWorldAtThisPixel2, 
+		//											   index, 
+		//											   theColourAtThisPixel2, 
+		//											   materialSpecular );
+		//	}
+		//}// if ( theNormalAtThisPixel.a != CALCULATE_LIGHTING )
+
+		////fragOut.colour.rgb = texture( fullRenderedImage2D, fUV_X2.xy ).rgb;
+		////fragOut.colour.a = 1.0f;
+
+		////Make it  black and white (well, "greyscale"
+		//float Y = (0.2126 * fragOut.colour.r) + 
+		//          (0.7152 * fragOut.colour.g) + 
+		//		  (0.0722 * fragOut.colour.b);
+		//fragOut.colour.rgb = vec3(Y,Y,Y);
+	
+		break;	// end of pass PASS3
+
+	case 3:
+	
+		// In this example, there is a single quad, that
+		//	is being drawn with the full, rendered buffer from the previous pass
+		fragOut.colour.rgb = texture( fullRenderedImage2D, fUV_X2.xy ).rgb;
+		fragOut.colour.a = 1.0f;
 	}
 	
 }	// void main()

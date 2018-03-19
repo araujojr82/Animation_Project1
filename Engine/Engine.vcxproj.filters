@@ -58,6 +58,9 @@
     <Filter Include="Utilities">
       <UniqueIdentifier>{1a37f148-8328-4856-a475-711b49356712}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Models\PlyLoader">
+      <UniqueIdentifier>{621aa905-883e-4618-8d9a-5785c97f0b32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TheMain.cpp">
@@ -182,6 +185,18 @@
     </ClCompile>
     <ClCompile Include="cDebugRenderer_BuiltInShapes.cpp">
       <Filter>DebugRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Ply\CPlyFile5nt.cpp">
+      <Filter>Models\PlyLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Ply\CPlyFile5nt_experimental.cpp">
+      <Filter>Models\PlyLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="Ply\CVector3f.cpp">
+      <Filter>Models\PlyLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="CHRTimer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -313,6 +328,18 @@
     </ClInclude>
     <ClInclude Include="Utilities.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Ply\CPlyFile5nt.h">
+      <Filter>Models\PlyLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Ply\CPlyInfo.h">
+      <Filter>Models\PlyLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="Ply\CVector3f.h">
+      <Filter>Models\PlyLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="CHRTimer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -17,6 +17,8 @@ extern cFBO g_myFBO;
 
 extern bool g_bIsSecondPass;
 
+extern GLint g_renderID;
+
 // Draw a single object
 // If pParentGO == NULL, then IT'S the parent
 void DrawObject( cGameObject* pTheGO, cGameObject* pParentGO );
@@ -116,6 +118,7 @@ void RenderScene( std::vector< cGameObject* > &vec_pGOs, GLFWwindow* pGLFWWindow
 
 	// Draw the scene
 	unsigned int sizeOfVector = ( unsigned int )::g_vecGameObjects.size();	//*****//
+	//unsigned int sizeOfVector = ( unsigned int )vec_pGOs.size();	//*****//
 	for( int index = 0; index != sizeOfVector; index++ )
 	{
 		cGameObject* pTheGO = ::g_vecGameObjects[index];
@@ -294,6 +297,7 @@ void DrawMesh( sMeshDrawInfo &theMesh, cGameObject* pTheGO )
 	//	uniform bool bIsHeightMap;
 	GLint texHeightMap_UniLoc = glGetUniformLocation( curShaderProgID, "texHeightMap" );
 	GLint bIsHeightMap_UniLoc = glGetUniformLocation( curShaderProgID, "bIsHeightMap" );
+
 
 	//	// HACK: Check for the mesh name
 	//	if ( theMesh.name == "MeshLabTerrain_xyz_n_uv" )
@@ -639,40 +643,52 @@ namespace QnDTexureSamplerUtility
 	void SetSamplersForMeshTextures( sMeshDrawInfo &meshDrawInfo,
 									 std::map<std::string /*textureName*/, CTexUnitInfoBrief> &mapTexAndUnitInfo )
 	{
-		// 2D textures first
-		int numTextures = ( int )meshDrawInfo.vecMehs2DTextures.size();
-		for( int samplerIndex = 0; samplerIndex != numTextures; samplerIndex++ )
+
+		if( meshDrawInfo.name == "mirror" )
 		{
-			// What texture unit is this texture set to?
-			std::map<std::string, CTexUnitInfoBrief>::iterator itTextUnitInfo
-				= mapTexAndUnitInfo.find( meshDrawInfo.vecMehs2DTextures[samplerIndex].name );
-			// Have we mapped that one?
-			if( itTextUnitInfo != mapTexAndUnitInfo.end() )
-			{	// Yes, so assign it
-				set2DSamplerAndBlenderByIndex( samplerIndex,
-											   meshDrawInfo.vecMehs2DTextures[samplerIndex].blendRatio,
-											   itTextUnitInfo->second.texUnitNumOffsetBy_GL_TEXTURE0 );
-				// Set blend function, too
-			}
-		}// 2D textures
+			// HACK
+			glUniform1i( texSamp2D00_LocID, 11 ); //g_renderID );
+			glUniform1f( texBlend00_LocID, 1.0 );
+		}
+
+		else
+		{
+
+			// 2D textures first
+			int numTextures = ( int )meshDrawInfo.vecMehs2DTextures.size();
+			for( int samplerIndex = 0; samplerIndex != numTextures; samplerIndex++ )
+			{
+				// What texture unit is this texture set to?
+				std::map<std::string, CTexUnitInfoBrief>::iterator itTextUnitInfo
+					= mapTexAndUnitInfo.find( meshDrawInfo.vecMehs2DTextures[samplerIndex].name );
+				// Have we mapped that one?
+				if( itTextUnitInfo != mapTexAndUnitInfo.end() )
+				{	// Yes, so assign it
+					set2DSamplerAndBlenderByIndex( samplerIndex,
+												   meshDrawInfo.vecMehs2DTextures[samplerIndex].blendRatio,
+												   itTextUnitInfo->second.texUnitNumOffsetBy_GL_TEXTURE0 );
+					// Set blend function, too
+				}
+			}// 2D textures
+
 
 		 // Now cube maps
-		numTextures = ( int )meshDrawInfo.vecMeshCubeMaps.size();
-		for( int samplerIndex = 0; samplerIndex != numTextures; samplerIndex++ )
-		{
-			// What texture unit is this texture set to?
-			std::map<std::string, CTexUnitInfoBrief>::iterator itTextUnitInfo
-				= mapTexAndUnitInfo.find( meshDrawInfo.vecMeshCubeMaps[samplerIndex].name );
-			// Have we mapped that one?
-			if( itTextUnitInfo != mapTexAndUnitInfo.end() )
-			{	// Yes, so assign it
-				setCubeSamplerAndBlenderByIndex( samplerIndex,
-												 meshDrawInfo.vecMeshCubeMaps[samplerIndex].blendRatio,
-												 itTextUnitInfo->second.texUnitNumOffsetBy_GL_TEXTURE0 );
-			}
-		}// cube maps
+			numTextures = ( int )meshDrawInfo.vecMeshCubeMaps.size();
+			for( int samplerIndex = 0; samplerIndex != numTextures; samplerIndex++ )
+			{
+				// What texture unit is this texture set to?
+				std::map<std::string, CTexUnitInfoBrief>::iterator itTextUnitInfo
+					= mapTexAndUnitInfo.find( meshDrawInfo.vecMeshCubeMaps[samplerIndex].name );
+				// Have we mapped that one?
+				if( itTextUnitInfo != mapTexAndUnitInfo.end() )
+				{	// Yes, so assign it
+					setCubeSamplerAndBlenderByIndex( samplerIndex,
+													 meshDrawInfo.vecMeshCubeMaps[samplerIndex].blendRatio,
+													 itTextUnitInfo->second.texUnitNumOffsetBy_GL_TEXTURE0 );
+				}
+			}// cube maps
 
-
+		}
 
 	}//void SetSamplersForMeshTextures()
 

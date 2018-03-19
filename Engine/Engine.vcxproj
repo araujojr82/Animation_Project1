@@ -162,6 +162,7 @@
     <ClCompile Include="cDebugRenderer.cpp" />
     <ClCompile Include="cDebugRenderer_BuiltInShapes.cpp" />
     <ClCompile Include="cGameObject.cpp" />
+    <ClCompile Include="CHRTimer.cpp" />
     <ClCompile Include="cLightManager.cpp" />
     <ClCompile Include="cMesh.cpp" />
     <ClCompile Include="cModelAssetLoader.cpp" />
@@ -183,6 +184,9 @@
     <ClCompile Include="Physics\AABB_triangles.cpp" />
     <ClCompile Include="Physics\cAABBBroadPhase.cpp" />
     <ClCompile Include="Physics\cAABBv2.cpp" />
+    <ClCompile Include="Ply\CPlyFile5nt.cpp" />
+    <ClCompile Include="Ply\CPlyFile5nt_experimental.cpp" />
+    <ClCompile Include="Ply\CVector3f.cpp" />
     <ClCompile Include="Render_Calls.cpp" />
     <ClCompile Include="SceneLoader.cpp" />
     <ClCompile Include="sMeshDrawInfo.cpp" />
@@ -207,6 +211,7 @@
     <ClInclude Include="cDebugRenderer.h" />
     <ClInclude Include="cFBO.h" />
     <ClInclude Include="cGameObject.h" />
+    <ClInclude Include="CHRTimer.h" />
     <ClInclude Include="cLightManager.h" />
     <ClInclude Include="cMesh.h" />
     <ClInclude Include="cModelAssetLoader.h" />
@@ -229,6 +234,9 @@
     <ClInclude Include="Physics\cAABBBroadPhase.h" />
     <ClInclude Include="Physics\cAABBv2.h" />
     <ClInclude Include="cSteeringManager.h" />
+    <ClInclude Include="Ply\CPlyFile5nt.h" />
+    <ClInclude Include="Ply\CPlyInfo.h" />
+    <ClInclude Include="Ply\CVector3f.h" />
     <ClInclude Include="sMeshDrawInfo.h" />
     <ClInclude Include="sTextureBindBlendInfo.h" />
     <ClInclude Include="sVAOInfo.h" />

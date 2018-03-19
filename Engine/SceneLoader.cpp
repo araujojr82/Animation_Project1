@@ -87,70 +87,73 @@ bool createMeshFromSkinnedMesh( cSimpleAssimpSkinnedMesh* theSkinnedMesh, int sh
 
 void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 {
+
+	cModelAssetLoader* pModelAssetLoader = new cModelAssetLoader();
+	pModelAssetLoader->setBasePath( "assets/models/" );
+
 	cAssimpBasic myAssimpLoader;
 	std::string error;
 
 	{ // Mirror
 		::g_pMirrorObject = new cGameObject();
 		::g_pMirrorObject->friendlyName = "Mirror";
-		::g_pMirrorObject->scale = 3.0f;
-		::g_pMirrorObject->position = glm::vec3( 0.0f, 0.0, 6.0f );
+		::g_pMirrorObject->scale = 1.0f;
+		::g_pMirrorObject->position = glm::vec3( 0.0f, 1.0f, 3.0f );
+		::g_pMirrorObject->adjustQOrientationFormDeltaEuler( glm::vec3( glm::radians(90.0f), 0.0f, glm::radians( 90.0f ) ) );
 
 		cMesh theMesh;
-
-		if( !myAssimpLoader.loadModelA( "assets/models/mirror.ply", theMesh, error ) )
+		theMesh.name = "mirror";
+		//assets / models / mirror_quad.ply
+		if( !pModelAssetLoader->LoadPlyFileIntoMeshWith_Normals_and_UV( "mirror_quad.ply", theMesh ) )
 		{
-			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
+			std::cout << "Didn't load model" << std::endl;
 		}
-		else
+		// ***********************************************************************
+		// NOTE the TRUE so that it keeps the mesh!!!
+		else if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, true ) )
 		{
-			theMesh.name = "mirror";
-			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
-			{
-				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
-			}
-
+			std::cout << "Could not load mesh into VAO" << std::endl;
+		}
+		
 			sMeshDrawInfo meshInfo;
 			meshInfo.scale = ::g_pMirrorObject->scale;
 			meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
 			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-			meshInfo.name = theMesh.name;
-			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "purple.bmp", 1.0f ) );
+			meshInfo.name = "mirror";
+			//meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "purple.bmp", 1.0f ) );
 			::g_pMirrorObject->vecMeshes.push_back( meshInfo );
-			//::g_vecGameObjects.push_back( ::g_pMirrorObject );		// Fastest way to add
-		}
+			::g_vecGameObjects.push_back( ::g_pMirrorObject );		// Fastest way to add
 	}
 
-	{ // Mirror
-		::g_pMirrorObject = new cGameObject();
-		::g_pMirrorObject->friendlyName = "Mirror";
-		::g_pMirrorObject->scale = 3.0f;
-		::g_pMirrorObject->position = glm::vec3( 0.0f, 0.0, 6.0f );
+	//{ // Mirror
+	//	::g_pMirrorObject = new cGameObject();
+	//	::g_pMirrorObject->friendlyName = "Mirror";
+	//	::g_pMirrorObject->scale = 3.0f;
+	//	::g_pMirrorObject->position = glm::vec3( 0.0f, 0.0, 6.0f );
 
-		cMesh theMesh;
+	//	cMesh theMesh;
 
-		if( !myAssimpLoader.loadModelA( "assets/models/mirror.ply", theMesh, error ) )
-		{
-			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
-		}
-		else
-		{
-			theMesh.name = "mirror";
-			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
-			{
-				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
-			}
+	//	if( !pModelAssetLoader->LoadPlyFileIntoMeshWithNormals( "mirror.ply", theMesh ) )
+	//	{
+	//		std::cout << "Didn't load model" << std::endl;
+	//	}
+	//	// ***********************************************************************
+	//	// NOTE the TRUE so that it keeps the mesh!!!
+	//	else if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, true ) )
+	//	{
+	//		std::cout << "Could not load mesh into VAO" << std::endl;
+	//	}
 
-			sMeshDrawInfo meshInfo;
-			meshInfo.scale = ::g_pMirrorObject->scale;
-			meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
-			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
-			meshInfo.name = theMesh.name;
-			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "purple.bmp", 1.0f ) );
-			::g_pMirrorObject->vecMeshes.push_back( meshInfo );
-			//::g_vecGameObjects.push_back( ::g_pMirrorObject );		// Fastest way to add
-		}
-	}
+	//	sMeshDrawInfo meshInfo;
+	//	meshInfo.scale = ::g_pMirrorObject->scale;
+	//	meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+	//	meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
+	//	meshInfo.name = theMesh.name;
+	//	meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "purple.bmp", 1.0f ) );
+	//	::g_pMirrorObject->vecMeshes.push_back( meshInfo );
+	//	::g_vecGameObjects.push_back( ::g_pMirrorObject );		// Fastest way to add
+	//
+	//}
 
 	{	// Our skybox object
 		::g_pSkyBoxObject = new cGameObject();
