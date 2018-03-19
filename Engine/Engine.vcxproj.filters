@@ -322,9 +322,6 @@
     <None Include="assets\shaders\simpleFrag.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="assets\shaders\simpleFragDeferred_old.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="assets\shaders\simpleFragDeferred.glsl">
       <Filter>Shaders</Filter>
     </None>

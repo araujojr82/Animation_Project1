@@ -121,6 +121,37 @@ void LoadModelsIntoScene( int shaderID, cVAOMeshManager* pVAOManager )
 		}
 	}
 
+	{ // Mirror
+		::g_pMirrorObject = new cGameObject();
+		::g_pMirrorObject->friendlyName = "Mirror";
+		::g_pMirrorObject->scale = 3.0f;
+		::g_pMirrorObject->position = glm::vec3( 0.0f, 0.0, 6.0f );
+
+		cMesh theMesh;
+
+		if( !myAssimpLoader.loadModelA( "assets/models/mirror.ply", theMesh, error ) )
+		{
+			std::cout << "All is lost! Forever lost!! Assimp didn't load the Model" << error << std::endl;
+		}
+		else
+		{
+			theMesh.name = "mirror";
+			if( !pVAOManager->loadMeshIntoVAO( theMesh, shaderID, false ) )
+			{
+				std::cout << "Assimp loaded mesh didn't load into VAO" << std::endl;
+			}
+
+			sMeshDrawInfo meshInfo;
+			meshInfo.scale = ::g_pMirrorObject->scale;
+			meshInfo.setMeshOrientationEulerAngles( glm::vec3( 0.0f, 0.0f, 0.0f ) );
+			meshInfo.debugDiffuseColour = glm::vec4( 1.0f, 1.0f, 0.0f, 1.0f );
+			meshInfo.name = theMesh.name;
+			meshInfo.vecMehs2DTextures.push_back( sTextureBindBlendInfo( "purple.bmp", 1.0f ) );
+			::g_pMirrorObject->vecMeshes.push_back( meshInfo );
+			//::g_vecGameObjects.push_back( ::g_pMirrorObject );		// Fastest way to add
+		}
+	}
+
 	{	// Our skybox object
 		::g_pSkyBoxObject = new cGameObject();
 		::g_pSkyBoxObject->type = eTypeOfGO::SKYBOX;

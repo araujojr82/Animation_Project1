@@ -247,7 +247,6 @@
   <ItemGroup>
     <None Include="assets\shaders\simpleFrag.glsl" />
     <None Include="assets\shaders\simpleFragDeferred.glsl" />
-    <None Include="assets\shaders\simpleFragDeferred_old.glsl" />
     <None Include="assets\shaders\simpleVert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -86,6 +86,9 @@ uniform bool bIsDebugWireFrameObject;
 uniform float DrunkOffset;
 uniform int DrunkEffect;
 
+// For Outline
+uniform bool useOutline;
+
 // Note: this CAN'T be an array (sorry). See 3D texture array
 uniform sampler2D texSamp2D00;		// Represents a 2D image
 uniform sampler2D texSamp2D01;		// Represents a 2D image
@@ -316,51 +319,49 @@ void main()
 			fragOut.colour.rgb = theColourAtThisPixel.rgb;
 			fragOut.colour.a = 1.0f;
 
-
-			//// ==============  Edge Detection  ===============
-			//float dx = 0.1 / screenWidth;
-			//float dy = 0.1 / screenHeight;
-
-			////vec3 center = sampleNrm( uTexNormals, vec2(0.0, 0.0) );
-			//vec3 center = texture( texFBONormal2D, vec2(textCoords.x, textCoords.y )).rgb;
-
-			//// sampling just these 3 neighboring fragments keeps the outline thin.				
-			//vec3 top = texture( texFBONormal2D, vec2(textCoords.x, textCoords.y + dy )).rgb;
-			//vec3 topRight = texture( texFBONormal2D, vec2(textCoords.x + dx, textCoords.y + dy )).rgb;
-			//vec3 right = texture( texFBONormal2D, vec2(textCoords.x + dx, textCoords.y )).rgb;
-
-			//vec3 t = center - top;
-			//vec3 r = center - right;
-			//vec3 tr = center - topRight;
-
-			//t = abs( t );
-			//r = abs( r );
-			//tr = abs( tr );
-
-			//float n;
-			//n = max( n, t.x );
-			//n = max( n, t.y );
-			//n = max( n, t.z );
-			//n = max( n, r.x );
-			//n = max( n, r.y );
-			//n = max( n, r.z );
-			//n = max( n, tr.x );
-			//n = max( n, tr.y );
-			//n = max( n, tr.z );
-
-			//// threshold and scale.
-			//n = 1.0 - clamp( clamp((n * 2.0) - 0.8, 0.0, 1.0) * 1.5, 0.0, 1.0 );
-
-			//fragOut.colour.rgb = texture(texFBOColour2D, textCoords).rgb * (0.1 + 0.9*n);			
-			//// ==============  Edge Detection  ===============
-			
 			// "2nd pass effects"		
 			// ****************************************************************
-			//// Make it  black and white (well, "greyscale"
-			//float Y = (0.2126 * fragOut.colour.r) + 
-			//          (0.7152 * fragOut.colour.g) + 
-			//		  (0.0722 * fragOut.colour.b);
-			//fragOut.colour.rgb = vec3(Y,Y,Y);
+
+			// ==============  Edge Detection  ===============
+			if( useOutline == true )
+			{
+				float dx = 0.1 / screenWidth;
+				float dy = 0.1 / screenHeight;
+
+				//vec3 center = sampleNrm( uTexNormals, vec2(0.0, 0.0) );
+				vec3 center = texture( texFBONormal2D, vec2(textCoords.x, textCoords.y )).rgb;
+
+				// sampling just these 3 neighboring fragments keeps the outline thin.				
+				vec3 top = texture( texFBONormal2D, vec2(textCoords.x, textCoords.y + dy )).rgb;
+				vec3 topRight = texture( texFBONormal2D, vec2(textCoords.x + dx, textCoords.y + dy )).rgb;
+				vec3 right = texture( texFBONormal2D, vec2(textCoords.x + dx, textCoords.y )).rgb;
+
+				vec3 t = center - top;
+				vec3 r = center - right;
+				vec3 tr = center - topRight;
+
+				t = abs( t );
+				r = abs( r );
+				tr = abs( tr );
+
+				float n;
+				n = max( n, t.x );
+				n = max( n, t.y );
+				n = max( n, t.z );
+				n = max( n, r.x );
+				n = max( n, r.y );
+				n = max( n, r.z );
+				n = max( n, tr.x );
+				n = max( n, tr.y );
+				n = max( n, tr.z );
+
+				// threshold and scale.
+				n = 1.0 - clamp( clamp((n * 2.0) - 0.8, 0.0, 1.0) * 1.5, 0.0, 1.0 );
+
+				fragOut.colour.rgb = texture(texFBOColour2D, textCoords).rgb * (0.1 + 0.9*n);
+			}
+			// ==============  Edge Detection  ===============
+			
 
 			// ****************************************************************
 			// Drunk Offset		
@@ -407,42 +408,7 @@ void main()
 	//else			// The Third Pass
 	//{
 	case PASS_2_FULL_SCREEN_EFFECT_PASS:	
-		
-		fragOut.colour.rgba = vec4( 1.0f );
 
-		//vec2 textCoords2 = vec2( gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight );
-
-		//vec3 theColourAtThisPixel2 = texture( fullRenderedImage2D, fUV_X2.xy).rgb;
-		//vec4 theNormalAtThisPixel2 = texture( texFBONormal2D, fUV_X2.xy).rgba;
-		//vec3 theVertLocWorldAtThisPixel2 = texture( texFBOVertexWorldPos2D, fUV_X2.xy).rgb;
-
-		//if ( theNormalAtThisPixel2.a != CALCULATE_LIGHTING )
-		//{
-		//	// Return the colour as it is on the colour FBO
-		//	fragOut.colour.rgb = theColourAtThisPixel2.rgb;
-		//	fragOut.colour.a = 1.0f;
-		//}
-		//else
-		//{
-		//	// ELSE: do the lighting...
-		//	for ( int index = 0; index < NUMBEROFLIGHTS; index++ )
-		//	{
-		//		fragOut.colour.rgb += calcLightColour( theNormalAtThisPixel2.xyz, 					
-		//											   theVertLocWorldAtThisPixel2, 
-		//											   index, 
-		//											   theColourAtThisPixel2, 
-		//											   materialSpecular );
-		//	}
-		//}// if ( theNormalAtThisPixel.a != CALCULATE_LIGHTING )
-
-
-		//////Make it  black and white (well, "greyscale"
-		////float Y = (0.2126 * fragOut.colour.r) + 
-		////          (0.7152 * fragOut.colour.g) + 
-		////		  (0.0722 * fragOut.colour.b);
-		////fragOut.colour.rgb = vec3(Y,Y,Y);
-
-		//return;
 		break;
 	}
 	

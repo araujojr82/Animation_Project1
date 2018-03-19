@@ -17,6 +17,7 @@ extern void setState( eGOState nextAnimation );
 
 extern GLint g_renderID;
 extern cGameObject* g_pSphereObject;
+extern bool g_outline;
 
 void changePlayerGO()
 {
@@ -65,6 +66,9 @@ void changePlayerGO()
 	
 	if( key == GLFW_KEY_6 && action == GLFW_PRESS )
 		::g_pSphereObject->vecMeshes[0].coefficientRefract += 0.1f;
+
+	if( key == GLFW_KEY_O && action == GLFW_PRESS )
+		::g_outline = !::g_outline;	
 
 	if( key == GLFW_KEY_TAB && action == GLFW_PRESS )
 	{

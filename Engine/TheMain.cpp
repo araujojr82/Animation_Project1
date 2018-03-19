@@ -104,6 +104,7 @@ GLint g_renderID = 0;
 unsigned int g_drunkEffect = 0;
 float g_drunkOffset = 0.0f;
 float g_drunkOffsetChange = 0.0001f;
+bool g_outline = false;
 
 // This contains the AABB grid for the terrain...
 //cAABBBroadPhase* g_terrainAABBBroadPhase = 0;
@@ -178,7 +179,7 @@ bool createState( cGameObject* pTheGO, eAnimationType type, cAnimationState::sSt
 	}
 	else
 
-	theState.name = theAnimPath;
+		theState.name = theAnimPath;
 	theState.totalTime = pTheGO->pSimpleSkinnedMesh->GetDuration( theAnimPath );
 	theState.frameStepTime = 0.02f;
 
@@ -203,7 +204,7 @@ void updateCurrentAnimation( eAnimationType type, bool loopAnim = true )
 			newState.name = "none";
 		}
 		newState.runInLoop = loopAnim;
-		if( type == NOTHING ) 			
+		if( type == NOTHING )
 		{
 			if( pTheAniState->currentAnimationType == JUMP )
 			{
@@ -212,7 +213,7 @@ void updateCurrentAnimation( eAnimationType type, bool loopAnim = true )
 					pTheAniState->currentAnimation = newState;
 					pTheAniState->currentAnimationType = type;
 				}
-			}	
+			}
 			else
 			{
 				pTheAniState->currentAnimation = newState;
@@ -235,7 +236,7 @@ void setState( eGOState nextState )
 
 	bool isFinished = ::g_pThePlayerGO->pAniState->currentAnimation.isFinished;
 	eAnimationType currentAnimationType = ::g_pThePlayerGO->pAniState->currentAnimationType;
-	
+
 	if( currentAnimationType == eAnimationType::JUMP && isFinished )
 	{
 		theNextState = eGOState::DEFAULT;
@@ -249,9 +250,9 @@ void setState( eGOState nextState )
 			case DEFAULT:	// IDLE
 				::g_pThePlayerGO->currentState = theNextState;
 				break;
-			case JUMPING_STATIC :
-			case JUMPING_SHORT :
-			case JUMPING_LONG :
+			case JUMPING_STATIC:
+			case JUMPING_SHORT:
+			case JUMPING_LONG:
 				if( isFinished )
 					::g_pThePlayerGO->currentState = theNextState;
 				// TODO: ALLOW ROTATION
@@ -278,7 +279,7 @@ void setState( eGOState nextState )
 				//if( nextAnimation == WALK_FORWARD ||
 				//	nextAnimation == JUMP ||
 				//	nextAnimation == NOTHING )
-					::g_pThePlayerGO->currentState = theNextState;
+				::g_pThePlayerGO->currentState = theNextState;
 				break;
 			case WALKING_FORWARD:
 				::g_pThePlayerGO->currentState = theNextState;
@@ -294,7 +295,7 @@ void setState( eGOState nextState )
 				break;
 			case DOING_NOTHING:
 				::g_pThePlayerGO->currentState = theNextState;
-				break;			
+				break;
 		}
 
 	}
@@ -302,7 +303,7 @@ void setState( eGOState nextState )
 }
 
 void move_player()
-{	
+{
 	bool isFinished = ::g_pThePlayerGO->pAniState->currentAnimation.isFinished;
 	eAnimationType currentAnimationType = ::g_pThePlayerGO->pAniState->currentAnimationType;
 
@@ -311,19 +312,19 @@ void move_player()
 		case DEFAULT:
 			updateCurrentAnimation( eAnimationType::BASE );
 			break;
-		case JUMPING_STATIC :
+		case JUMPING_STATIC:
 			if( isFinished )
 			{
 				::g_pThePlayerGO->currentState = eGOState::DEFAULT;
-				updateCurrentAnimation( eAnimationType::BASE );			
+				updateCurrentAnimation( eAnimationType::BASE );
 			}
 			else
 			{
 				updateCurrentAnimation( eAnimationType::JUMP, false );
 			}
 			break;
-		case JUMPING_SHORT :
-		case JUMPING_LONG :
+		case JUMPING_SHORT:
+		case JUMPING_LONG:
 			if( isFinished )
 			{
 				if( ::g_pThePlayerGO->bIsWalking )
@@ -361,7 +362,7 @@ void move_player()
 			updateCurrentAnimation( eAnimationType::MOVE_RIGHT );
 			break;
 		case TURNING_LEFT:
-			updateCurrentAnimation( eAnimationType::TURN_LEFT);
+			updateCurrentAnimation( eAnimationType::TURN_LEFT );
 			break;
 		case TURNING_RIGHT:
 			updateCurrentAnimation( eAnimationType::TURN_RIGHT );
@@ -392,7 +393,7 @@ void move_player()
 	if( isnan( ::g_pThePlayerGO->vel.x ) ) ::g_pThePlayerGO->vel.x = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.y ) ) ::g_pThePlayerGO->vel.y = 0.0f;
 	if( isnan( ::g_pThePlayerGO->vel.z ) ) ::g_pThePlayerGO->vel.z = 0.0f;
-	
+
 	if( ::g_pThePlayerGO->currentState == eGOState::MOVING_RIGHT ||
 		::g_pThePlayerGO->currentState == eGOState::STRAFING_RIGHT )
 	{
@@ -415,7 +416,7 @@ void move_player()
 
 	}
 	else if( ::g_pThePlayerGO->currentState == eGOState::MOVING_LEFT ||
-		::g_pThePlayerGO->currentState == eGOState::STRAFING_LEFT )
+			 ::g_pThePlayerGO->currentState == eGOState::STRAFING_LEFT )
 	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.left * ::g_pThePlayerGO->scale;
 
@@ -439,7 +440,7 @@ void move_player()
 			 ::g_pThePlayerGO->currentState == eGOState::RUNNING ||
 			 ::g_pThePlayerGO->currentState == eGOState::JUMPING_SHORT ||
 			 ::g_pThePlayerGO->currentState == eGOState::JUMPING_LONG )
-	{	
+	{
 		float maxSpeed = ::g_pThePlayerGO->mySpeed.forward * ::g_pThePlayerGO->scale;
 
 		if( ::g_pThePlayerGO->currentState == eGOState::RUNNING ||
@@ -449,14 +450,14 @@ void move_player()
 		if( ::g_pThePlayerGO->currentState == eGOState::JUMPING_LONG )
 			maxSpeed *= 4.0f;
 
-		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;		
+		movement = ::g_pThePlayerGO->getFrontVector() * 0.01f;
 
 		::g_pThePlayerGO->vel += movement;
 
 		if( abs( ::g_pThePlayerGO->vel.x ) < 0.001 ) ::g_pThePlayerGO->vel.x = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.y ) < 0.001 ) ::g_pThePlayerGO->vel.y = 0.0f;
 		if( abs( ::g_pThePlayerGO->vel.z ) < 0.001 ) ::g_pThePlayerGO->vel.z = 0.0f;
-		
+
 		totalVelocity = abs( ::g_pThePlayerGO->vel.x ) +
 			abs( ::g_pThePlayerGO->vel.y ) +
 			abs( ::g_pThePlayerGO->vel.z );
@@ -499,7 +500,7 @@ void move_player()
 		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, -0.02f, 0.0f ) );
 	if( ::g_pThePlayerGO->currentState == TURNING_LEFT )
 		::g_pThePlayerGO->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, 0.02f, 0.0f ) );
-		
+
 
 	return;
 }
@@ -601,10 +602,10 @@ void collisionCheck()
 	for( int i = 0; i != sizeOfVector; i++ )
 	{
 		cGameObject* pTheOtherGO = ::g_vecGameObjects[i];
-		if( pTheOtherGO->type != eTypeOfGO::CHARACTER ) continue; 
-		
+		if( pTheOtherGO->type != eTypeOfGO::CHARACTER ) continue;
+
 		if( ::g_pThePlayerGO == pTheOtherGO ) continue;	// Don't test itself
-		
+
 		float distance = glm::distance( ::g_pThePlayerGO->position, pTheOtherGO->position );
 		if( distance < 0.5f )	//They are overlapping
 		{
@@ -640,9 +641,9 @@ int main( void )
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 0 );
 
 	::g_pGLFWWindow = glfwCreateWindow( wConfig.width, wConfig.height,
-		wConfig.title.c_str(),
-		NULL, // glfwGetPrimaryMonitor(), //
-		NULL );
+										wConfig.title.c_str(),
+										NULL, // glfwGetPrimaryMonitor(), //
+										NULL );
 
 	if( !::g_pGLFWWindow )
 	{
@@ -678,7 +679,7 @@ int main( void )
 	vertShader.fileName = "simpleVert.glsl";
 	//fragShader.fileName = "simpleFrag.glsl";
 	fragShader.fileName = "simpleFragDeferred.glsl";
-	
+
 	::g_pShaderManager->setBasePath( "assets//shaders//" );
 
 	// Shader objects are passed by reference so that
@@ -688,7 +689,7 @@ int main( void )
 	{
 		std::cout << "Oh no! All is lost!!! Blame Loki!!!" << std::endl;
 		std::cout << ::g_pShaderManager->getLastError() << std::endl;
-		
+
 		return -1;
 	}
 	std::cout << "The shaders compiled and linked OK" << std::endl;
@@ -787,7 +788,7 @@ int main( void )
 		std::cout << "Texture is loaded! Hazzah!" << std::endl;
 	}
 	::g_pTextureManager->Create2DTextureFromBMPFile( "morty.bmp", true );
-	::g_pTextureManager->Create2DTextureFromBMPFile( "meeseeks.bmp", true );		
+	::g_pTextureManager->Create2DTextureFromBMPFile( "meeseeks.bmp", true );
 	::g_pTextureManager->Create2DTextureFromBMPFile( "grass1.bmp", true );
 	::g_pTextureManager->Create2DTextureFromBMPFile( "teste1.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "red.bmp", true );	
@@ -798,10 +799,10 @@ int main( void )
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "gray.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "green.bmp", true );
 	//::g_pTextureManager->Create2DTextureFromBMPFile( "yellow.bmp", true );
-	
+
 	::g_pTextureManager->setBasePath( "assets/textures/skybox" );
 	if( !::g_pTextureManager->CreateCubeTextureFromBMPFiles(
-		"space",		
+		"space",
 		"face-r.bmp",						//posX_fileName			
 		"face-l.bmp",						//negX_fileName											
 		"face-d.bmp",		//BOTOM			//posY_fileName
@@ -891,7 +892,7 @@ int main( void )
 		// Now many seconds that have elapsed since we last checked
 		double curTime = glfwGetTime();
 		double deltaTime = curTime - lastTimeStep;
-		lastTimeStep = curTime;		
+		lastTimeStep = curTime;
 
 		move_player();
 
@@ -901,7 +902,7 @@ int main( void )
 		collisionCheck();
 
 		::g_pShaderManager->useShaderProgram( "mySexyShader" );
-		
+
 		// Check to see if we are using Deferred Renderer
 		if( !::g_bUseDeferred )
 		{
@@ -920,7 +921,7 @@ int main( void )
 		}
 		else
 		{	// Using the Deferred Renderer
-			
+
 			//// ##########################################
 			////g_myMirrorFBO
 			//
@@ -959,7 +960,7 @@ int main( void )
 			glUniform1i( renderPassNumber_LocID, RENDER_PASS_0 );
 
 			glBindFramebuffer( GL_FRAMEBUFFER, g_myFBO.ID );
-			
+
 			// Clear colour AND depth buffer
 			g_myFBO.clearBuffers();
 
@@ -967,17 +968,17 @@ int main( void )
 
 
 			// -----------> The Second Pass
-			
+
 			// Render it again, but point the the FBO texture... 
 			::g_bIsSecondPass = true;
 			glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-			
+
 			GLfloat	zero = 0.0f;							 //clearBuffers();
 			GLfloat one = 1.0f;								 //clearBuffers();
 			glClearBufferfv( GL_COLOR, 0, &zero );			 //clearBuffers();
 			glClearBufferfv( GL_DEPTH, 0, &one );			 //clearBuffers();
 
-			//glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+															 //glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 			::g_pShaderManager->useShaderProgram( "mySexyShader" );
 
@@ -993,7 +994,7 @@ int main( void )
 
 			//GLint texFBODepth2DTextureUnitID = 13;													   //ADDED
 			//GLint texFBODepth2DLocID = glGetUniformLocation( sexyShaderID, "texFBODepth2D" );		   //ADDED
-			
+
 
 			// Pick a texture unit... 
 			glActiveTexture( GL_TEXTURE0 + texFBOColour2DTextureUnitID );
@@ -1042,7 +1043,10 @@ int main( void )
 			glUniform1f( DrunkOffset_LocID, ::g_drunkOffset );
 
 			GLint DrunkFlag_LocID = glGetUniformLocation( sexyShaderID, "DrunkEffect" );
-			glUniform1i( DrunkFlag_LocID, ::g_drunkEffect );	
+			glUniform1i( DrunkFlag_LocID, ::g_drunkEffect );
+
+			GLint OutlineFlag_LocID = glGetUniformLocation( sexyShaderID, "useOutline" );
+			glUniform1i( OutlineFlag_LocID, ::g_outline );
 
 			std::vector< cGameObject* >  vecCopy2ndPass;
 			// Push back a SINGLE quad or GIANT triangle that fills the entire screen
@@ -1106,8 +1110,8 @@ int main( void )
 		glfwSetWindowTitle( ::g_pGLFWWindow, ssTitle.str().c_str() );
 
 		glfwSwapBuffers( ::g_pGLFWWindow );
-		glfwPollEvents();	
-		
+		glfwPollEvents();
+
 
 	}// while ( ! glfwWindowShouldClose(window) )
 
@@ -1198,8 +1202,8 @@ glm::vec3 GetRandomPosition()
 	while( !validPosition )
 	{
 		newPosition = glm::vec3( generateRandomNumber( -200, 200 ),
-			generateRandomNumber( -200, 200 ),
-			generateRandomNumber( -200, 200 ) );
+								 generateRandomNumber( -200, 200 ),
+								 generateRandomNumber( -200, 200 ) );
 		validPosition = CheckDistance( newPosition, center, 30.0f, 100.0f );
 	}
 
@@ -1353,47 +1357,47 @@ glm::vec3 GetRandomPosition()
 //Load meshlist.txt
 //void loadMeshesFile( std::string fileName, GLint ShaderID )
 //{
-	//std::vector <sMeshparameters> allMeshes;
+//std::vector <sMeshparameters> allMeshes;
 
-	//std::ifstream objectsFile( fileName );
-	//if( !objectsFile.is_open() )
-	//{	// File didn't open...
-	//	std::cout << "Can't find config file" << std::endl;
-	//	std::cout << "Using defaults" << std::endl;
-	//}
-	//else
-	//{	// File DID open, so loop through the file and pushback to structure
-	//	while( !objectsFile.eof() && objectsFile.is_open() ) {
-	//		allMeshes.push_back( parseMeshLine( objectsFile ) );
-	//	}
-	//	objectsFile.close();  //Closing "costfile.txt"
-	//}
+//std::ifstream objectsFile( fileName );
+//if( !objectsFile.is_open() )
+//{	// File didn't open...
+//	std::cout << "Can't find config file" << std::endl;
+//	std::cout << "Using defaults" << std::endl;
+//}
+//else
+//{	// File DID open, so loop through the file and pushback to structure
+//	while( !objectsFile.eof() && objectsFile.is_open() ) {
+//		allMeshes.push_back( parseMeshLine( objectsFile ) );
+//	}
+//	objectsFile.close();  //Closing "costfile.txt"
+//}
 
-	//for( int index = 0; index != allMeshes.size(); index++ )
-	//{
-	//	cMesh testMesh;
-	//	testMesh.name = allMeshes[index].meshname;
-	//	//if( !LoadPlyFileIntoMesh( allMeshes[index].meshFilename, testMesh ) )
-	//	if( !LoadPlyFileIntoMeshWithUV( allMeshes[index].meshFilename, testMesh ) )
-	//	{
-	//		std::cout << "Didn't load model" << std::endl;
-	//		// do something??
-	//	}
-	//	if( testMesh.name == "ball" )
-	//	{
-	//		if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID, true ) )
-	//		{
-	//			std::cout << "Could not load mesh into VAO" << std::endl;
-	//		}
-	//	}
-	//	else
-	//	{
-	//		if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID ) )
-	//		{
-	//			std::cout << "Could not load mesh into VAO" << std::endl;
-	//		}
-	//	}		
-	//}
+//for( int index = 0; index != allMeshes.size(); index++ )
+//{
+//	cMesh testMesh;
+//	testMesh.name = allMeshes[index].meshname;
+//	//if( !LoadPlyFileIntoMesh( allMeshes[index].meshFilename, testMesh ) )
+//	if( !LoadPlyFileIntoMeshWithUV( allMeshes[index].meshFilename, testMesh ) )
+//	{
+//		std::cout << "Didn't load model" << std::endl;
+//		// do something??
+//	}
+//	if( testMesh.name == "ball" )
+//	{
+//		if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID, true ) )
+//		{
+//			std::cout << "Could not load mesh into VAO" << std::endl;
+//		}
+//	}
+//	else
+//	{
+//		if( !::g_pVAOManager->loadMeshIntoVAO( testMesh, ShaderID ) )
+//		{
+//			std::cout << "Could not load mesh into VAO" << std::endl;
+//		}
+//	}		
+//}
 //}
 
 //// Parse the file line to fit into the structure
@@ -1468,7 +1472,7 @@ void mouse_callback( GLFWwindow* window, double xpos, double zpos )
 	float rateOfTurn = xoffset * -0.01;
 
 	//::g_pTheBall->adjustQOrientationFormDeltaEuler( glm::vec3( 0.0f, rateOfTurn, 0.0f ) );
-	::g_pTheMouseCamera->ProcessMouseMovement( xoffset, zoffset );	
+	::g_pTheMouseCamera->ProcessMouseMovement( xoffset, zoffset );
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
